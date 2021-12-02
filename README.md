@@ -8,13 +8,13 @@
 
 This distribution of Polyfish consists of the following files:
 
-  * [README.md](https://github.com/khalid-a-omar/Polyfish/blob/master/README.md), the file you are currently reading. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md) to see the original README.md file of Stockfish.*
+  * [README.md](https://github.com/khalid-a-omar/Polyfish/blob/main/README.md), the file you are currently reading. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md) to see the original README.md file of Stockfish.*
 
-  * [LICENSE.md](https://github.com/khalid-a-omar/Polyfish/blob/master/Copying.txt), a text file containing the GNU General Public License version 3. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/Copying.txt) to see the original license file of Stockfish*
+  * [LICENSE.md](https://github.com/khalid-a-omar/Polyfish/blob/main/LICENSE.md), a text file containing the GNU General Public License version 3. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/Copying.txt) to see the original license file of Stockfish*
 
-  * [AUTHORS.md](https://github.com/khalid-a-omar/Polyfish/blob/master/AUTHORS), a text file with the list of authors for the project. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/AUTHORS) to see the original AUTHORS file of Stockfish*
+  * [AUTHORS.md](https://github.com/khalid-a-omar/Polyfish/blob/main/AUTHORS.md), a text file with the list of authors for the project. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/AUTHORS) to see the original AUTHORS file of Stockfish*
 
-  * [src](https://github.com/khalid-a-omar/Polyfish/blob/master/src), a subdirectory containing the full source code. *Click [here](https://github.com/official-stockfish/Stockfish/tree/master/src) to see the original source code of Stockfish*
+  * [src](https://github.com/khalid-a-omar/Polyfish/blob/main/src), a subdirectory containing the full source code. *Click [here](https://github.com/official-stockfish/Stockfish/tree/master/src) to see the original source code of Stockfish*
 
 ## UCI options
 
