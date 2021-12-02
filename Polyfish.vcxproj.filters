@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\benchmark.cpp" />
+    <ClCompile Include="src\bitbase.cpp" />
+    <ClCompile Include="src\bitboard.cpp" />
+    <ClCompile Include="src\endgame.cpp" />
+    <ClCompile Include="src\evaluate.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\misc.cpp" />
+    <ClCompile Include="src\movegen.cpp" />
+    <ClCompile Include="src\movepick.cpp" />
+    <ClCompile Include="src\pawns.cpp" />
+    <ClCompile Include="src\position.cpp" />
+    <ClCompile Include="src\psqt.cpp" />
+    <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\thread.cpp" />
+    <ClCompile Include="src\timeman.cpp" />
+    <ClCompile Include="src\tt.cpp" />
+    <ClCompile Include="src\tune.cpp" />
+    <ClCompile Include="src\uci.cpp" />
+    <ClCompile Include="src\ucioption.cpp" />
+    <ClCompile Include="src\nnue\evaluate_nnue.cpp">
+      <Filter>nnue</Filter>
+    </ClCompile>
+    <ClCompile Include="src\nnue\features\half_ka_v2_hm.cpp">
+      <Filter>nnue\features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\syzygy\tbprobe.cpp">
+      <Filter>syzygy</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\bitboard.h" />
+    <ClInclude Include="src\endgame.h" />
+    <ClInclude Include="src\evaluate.h" />
+    <ClInclude Include="src\material.h" />
+    <ClInclude Include="src\misc.h" />
+    <ClInclude Include="src\movegen.h" />
+    <ClInclude Include="src\movepick.h" />
+    <ClInclude Include="src\pawns.h" />
+    <ClInclude Include="src\position.h" />
+    <ClInclude Include="src\search.h" />
+    <ClInclude Include="src\thread.h" />
+    <ClInclude Include="src\thread_win32_osx.h" />
+    <ClInclude Include="src\timeman.h" />
+    <ClInclude Include="src\tt.h" />
+    <ClInclude Include="src\tune.h" />
+    <ClInclude Include="src\types.h" />
+    <ClInclude Include="src\uci.h" />
+    <ClInclude Include="src\nnue\nnue_accumulator.h">
+      <Filter>nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\nnue_architecture.h">
+      <Filter>nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\nnue_common.h">
+      <Filter>nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\nnue_feature_transformer.h">
+      <Filter>nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\evaluate_nnue.h">
+      <Filter>nnue</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\layers\affine_transform.h">
+      <Filter>nnue\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\features\half_ka_v2_hm.h">
+      <Filter>nnue\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\psqt.h" />
+    <ClInclude Include="src\simd.h" />
+    <ClInclude Include="src\syzygy\tbprobe.h">
+      <Filter>syzygy</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\layers\input_slice.h">
+      <Filter>nnue\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\layers\clipped_relu.h">
+      <Filter>nnue\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\incbin\incbin.h">
+      <Filter>incbin</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\Makefile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="nnue">
+      <UniqueIdentifier>{ac3ce986-4d39-499f-9e22-f9f052334543}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nnue\features">
+      <UniqueIdentifier>{ca5a466d-4774-4916-ab62-42dbe61453e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="nnue\layers">
+      <UniqueIdentifier>{f37fbf08-3ade-4a67-aabb-92059e364b31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="syzygy">
+      <UniqueIdentifier>{1dfcc6df-e3fc-48f6-a342-523827e753d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="incbin">
+      <UniqueIdentifier>{a2986123-407f-4f30-aef5-aed9ce026e22}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
