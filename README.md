@@ -1,4 +1,5 @@
 
+
 ## Overview
 **Polyfish** is a UCI chess engine based on [Stockfish](https://github.com/official-stockfish). It is identical to Stockfish with the added capability of handling [Polyglot](https://web.archive.org/web/20191216195456/http://hardy.uhasselt.be/Toga/book_format.html) books
 
@@ -18,9 +19,9 @@ This distribution of Polyfish consists of the following files:
 
 ## UCI options
 
-Polyfish supports all UCI options and commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands and options*
+Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
 
-Polyfish also supports the following UCI options (mainly for Polyglot BIN support)
+Polyfish also supports the following UCI options
  * #### Book 1 File
     The name of the polyglot book to be used as the first book. To disable this book, use: ```<empty>```
 
@@ -38,3 +39,66 @@ Polyfish also supports the following UCI options (mainly for Polyglot BIN suppor
 
   * #### Book 2 Depth
     Same explaination as **Book 1 Depth**, but for the second polyglot book
+
+## UCI commands
+Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
+
+Polyfish also supports the following UCI command
+
+  * #### poly
+    This command causes the engine to print available book moves in the loaded books
+	```
+	position startpos
+	poly
+
+	 +---+---+---+---+---+---+---+---+
+	 | r | n | b | q | k | b | n | r | 8
+	 +---+---+---+---+---+---+---+---+
+	 | p | p | p | p | p | p | p | p | 7
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 6
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 5
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 4
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 3
+	 +---+---+---+---+---+---+---+---+
+	 | P | P | P | P | P | P | P | P | 2
+	 +---+---+---+---+---+---+---+---+
+	 | R | N | B | Q | K | B | N | R | 1
+	 +---+---+---+---+---+---+---+---+
+	   a   b   c   d   e   f   g   h
+
+	Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+	Key: 8F8F01D4562F59FB
+	Checkers:
+
+	Polyglot book 1: MyNarrowBook.bin
+	1 : e2e4 , count: 8822
+	2 : d2d4 , count: 6644
+	3 : g1f3 , count: 2047
+
+	Polyglot book 2: MyWideBook.bin
+	1 : e2e4 , count: 9768
+	2 : d2d4 , count: 5347
+	3 : g1f3 , count: 1034
+	4 : c2c4 , count: 965
+	5 : b2b3 , count: 99
+	6 : f2f4 , count: 94
+	7 : g2g3 , count: 76
+	8 : b2b4 , count: 43
+	9 : e2e3 , count: 32
+	10: b1c3 , count: 32
+	11: d2d3 , count: 13
+	12: c2c3 , count: 12
+	13: a2a3 , count: 10
+	14: g2g4 , count: 9
+	15: h2h3 , count: 3
+	16: h2h4 , count: 3
+	17: a2a4 , count: 1
+	18: g1h3 , count: 1
+	19: b1a3 , count: 1
+	20: f2f3 , count: 1
+	```
+
