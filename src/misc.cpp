@@ -158,7 +158,7 @@ string engine_info(bool to_uci) {
   }
 
   ss << (to_uci  ? "\nid author ": " by ")
-     << "Khalid Omar and the Stockfish developers (see AUTHORS file)";
+     << "Khalid Omar";
 
   return ss.str();
 }
