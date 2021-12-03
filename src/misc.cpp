@@ -149,7 +149,11 @@ string engine_info(bool to_uci) {
   string month, day, year;
   stringstream ss, date(__DATE__); // From compiler, format is "Sep 21 2008"
 
+#if defined(POLYFISH)
   ss << "Polyfish " << Version << setfill('0');
+#else
+  ss << "Stockfish " << Version << setfill('0');
+#endif
 
   if (Version.empty())
   {
@@ -158,7 +162,11 @@ string engine_info(bool to_uci) {
   }
 
   ss << (to_uci  ? "\nid author ": " by ")
+#if defined(POLYFISH)
      << "Khalid Omar";
+#else
+     << "the Stockfish developers (see AUTHORS file)";
+#endif
 
   return ss.str();
 }
@@ -664,9 +672,142 @@ void init(int argc, char* argv[]) {
     // pattern replacement: "./" at the start of path is replaced by the working directory
     if (binaryDirectory.find("." + pathSeparator) == 0)
         binaryDirectory.replace(0, 1, workingDirectory);
+
+#if defined(POLYFISH)
+    binaryDirectory = Utility::fix_path(binaryDirectory);
+    workingDirectory = Utility::fix_path(workingDirectory);
+#endif
 }
 
 
 } // namespace CommandLine
+
+#if defined(POLYFISH)
+namespace Utility
+{
+    string unquote(const string& s)
+    {
+        string s1 = s;
+
+        if (s1.size() > 2)
+        {
+            if ((s1.front() == '\"' && s1.back() == '\"') || (s1.front() == '\'' && s1.back() == '\''))
+            {
+                s1 = s1.substr(1, s1.size() - 2);
+            }
+        }
+
+        return s1;
+    }
+
+    bool is_empty_filename(const string fn)
+    {
+        if (fn.empty())
+            return true;
+
+        static string Empty = EMPTY;
+        return std::equal(
+            fn.begin(), fn.end(),
+            Empty.begin(), Empty.end(),
+            [](char a, char b) { return tolower(a) == tolower(b); });
+    }
+
+    string fix_path(const string& p)
+    {
+        if (is_empty_filename(p))
+            return p;
+
+        string p1 = unquote(p);
+        std::replace(p1.begin(), p1.end(), ReverseDirectorySeparator, DirectorySeparator);
+
+        return p1;
+    }
+
+    string combine_path(const string& p1, const string& p2)
+    {
+        //We don't expect the first part of the path to be empty!
+        assert(is_empty_filename(p1) == false);
+
+        if (is_empty_filename(p2))
+            return p2;
+
+        string p;
+        if (p1.back() == DirectorySeparator || p1.back() == ReverseDirectorySeparator)
+            p = p1 + p2;
+        else
+            p = p1 + DirectorySeparator + p2;
+
+        return fix_path(p);
+    }
+
+    string map_path(const string& p)
+    {
+        if (is_empty_filename(p))
+            return p;
+
+        string p2 = fix_path(p);
+
+        //Make sure we can map this path
+        if (p2.find(DirectorySeparator) == string::npos)
+            p2 = combine_path(CommandLine::binaryDirectory, p);
+
+        return p2;
+    }
+
+    bool file_exists(const string& f)
+    {
+        if (is_empty_filename(f))
+            return false;
+
+        if (FILE* file = fopen(f.c_str(), "r"))
+        {
+            fclose(file);
+            return true;
+        }
+
+        return false;
+    }
+
+    size_t get_file_size(const string& f)
+    {
+        if(is_empty_filename(f))
+            return (size_t)-1;
+
+        ifstream in(map_path(f), ifstream::ate | ifstream::binary);
+        if (!in.is_open())
+            return (size_t)-1;
+
+        return (size_t)in.tellg();
+    }
+
+    bool is_same_file(const string& f1, const string& f2)
+    {
+        return map_path(f1) == map_path(f2);
+    }
+
+    string format_bytes(uint64_t bytes, int decimals)
+    {
+        static const uint64_t KB = 1024;
+        static const uint64_t MB = KB * 1024;
+        static const uint64_t GB = MB * 1024;
+        static const uint64_t TB = GB * 1024;
+
+        stringstream ss;
+
+        if (bytes < KB)
+            ss << bytes << " B";
+        else if (bytes < MB)
+            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / KB) << "KB";
+        else if (bytes < GB)
+            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / MB) << "MB";
+        else if (bytes < TB)
+            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / GB) << "GB";
+        else
+            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / TB) << "TB";
+
+        return ss.str();
+    }
+} // namespace Utility
+#endif
 
 } // namespace Polyfish

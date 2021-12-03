@@ -30,6 +30,9 @@
     <ClCompile Include="src\syzygy\tbprobe.cpp">
       <Filter>syzygy</Filter>
     </ClCompile>
+    <ClCompile Include="src\polyglot\book.cpp">
+      <Filter>polyglot</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\bitboard.h" />
@@ -84,6 +87,9 @@
     <ClInclude Include="src\incbin\incbin.h">
       <Filter>incbin</Filter>
     </ClInclude>
+    <ClInclude Include="src\polyglot\book.h">
+      <Filter>polyglot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Makefile" />
@@ -103,6 +109,9 @@
     </Filter>
     <Filter Include="incbin">
       <UniqueIdentifier>{a2986123-407f-4f30-aef5-aed9ce026e22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="polyglot">
+      <UniqueIdentifier>{e95b96f9-2e67-4bd8-8ed1-58978673d04c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -232,6 +232,32 @@ namespace CommandLine {
   extern std::string workingDirectory; // path of the working directory
 }
 
+#if defined(POLYFISH)
+#define EMPTY   "<empty>"
+namespace Utility
+{
+#if defined(_WIN32) || defined (_WIN64)
+    constexpr char DirectorySeparator = '\\';
+    constexpr char ReverseDirectorySeparator = '/';
+#else
+    constexpr char DirectorySeparator = '/';
+    constexpr char ReverseDirectorySeparator = '\\';
+#endif
+
+    std::string unquote(const std::string& s);
+    bool is_empty_filename(const std::string f);
+    std::string fix_path(const std::string& p);
+    std::string combine_path(const std::string& p1, const std::string& p2);
+    std::string map_path(const std::string& p);
+
+    bool file_exists(const std::string& f);
+    size_t get_file_size(const std::string& f);
+    bool is_same_file(const std::string& f1, const std::string& f2);
+
+    std::string format_bytes(uint64_t bytes, int decimals);
+}
+#endif
+
 } // namespace Polyfish
 
 #endif // #ifndef MISC_H_INCLUDED

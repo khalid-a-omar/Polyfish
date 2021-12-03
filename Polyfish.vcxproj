@@ -24,6 +24,7 @@
     <ClCompile Include="src\nnue\evaluate_nnue.cpp" />
     <ClCompile Include="src\nnue\features\half_ka_v2_hm.cpp" />
     <ClCompile Include="src\pawns.cpp" />
+    <ClCompile Include="src\polyglot\book.cpp" />
     <ClCompile Include="src\position.cpp" />
     <ClCompile Include="src\psqt.cpp" />
     <ClCompile Include="src\search.cpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="src\nnue\nnue_common.h" />
     <ClInclude Include="src\nnue\nnue_feature_transformer.h" />
     <ClInclude Include="src\pawns.h" />
+    <ClInclude Include="src\polyglot\book.h" />
     <ClInclude Include="src\position.h" />
     <ClInclude Include="src\psqt.h" />
     <ClInclude Include="src\search.h" />
@@ -138,7 +140,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>USE_PEXT;USE_POPCNT;USE_AVX2;USE_SSE41;USE_SSSE3;USE_SSE3;USE_SSE2;_CRT_NONSTDC_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>POLYFISH;USE_PEXT;USE_POPCNT;USE_AVX2;USE_SSE41;USE_SSSE3;USE_SSE3;USE_SSE2;_CRT_NONSTDC_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>false</ExceptionHandling>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <OpenMPSupport>false</OpenMPSupport>

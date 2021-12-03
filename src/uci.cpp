@@ -30,6 +30,9 @@
 #include "timeman.h"
 #include "tt.h"
 #include "uci.h"
+#if defined(POLYFISH)
+#include "polyglot/book.h"
+#endif
 #include "syzygy/tbprobe.h"
 
 using namespace std;
@@ -276,6 +279,9 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "bench")    bench(pos, is, states);
       else if (token == "d")        sync_cout << pos << sync_endl;
       else if (token == "eval")     trace_eval(pos);
+#if defined(POLYFISH)
+      else if (token == "poly")    Polyglot::show_moves(pos);
+#endif
       else if (token == "compiler") sync_cout << compiler_info() << sync_endl;
       else if (token == "export_net")
       {
