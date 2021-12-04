@@ -378,7 +378,7 @@ namespace Utility
 
             //Create mapping
             void *data = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-            if (*data == MAP_FAILED)
+            if (data == MAP_FAILED)
             {
                 ::close(fd);
 
@@ -389,12 +389,12 @@ namespace Utility
             }
 
 #if defined(MADV_RANDOM)
-            madvise(*data, statbuf.st_size, MADV_RANDOM);
+            madvise(data, statbuf.st_size, MADV_RANDOM);
 #endif
             ::close(fd);
 
-            *mapping = statbuf.st_size;
-            *baseAddress = data;
+            mapping = statbuf.st_size;
+            baseAddress = data;
             dataLength = statbuf.st_size;
 #endif
             return true;

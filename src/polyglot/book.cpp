@@ -1,20 +1,11 @@
 #if defined(POLYFISH)
 
-#include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <algorithm>
 #include <random>
-#include <cmath>
-#include <cassert>
-#include <io.h>
 
-#include "../misc.h"
-#include "../position.h"
 #include "../thread.h"
 #include "../uci.h"
-#include "../misc.h"
-#include "../movegen.h"
 #include "book.h"
 
 using namespace std;
@@ -456,19 +447,6 @@ namespace
                 return 0;
 
             return bookDataLength / sizeof(PolyglotEntry);
-        }
-
-        bool save(const string& f) const
-        {
-            fstream bookFile;
-            bookFile.open(f, ios::binary | ios::out | ios::trunc);
-            if (!bookFile.is_open())
-                return false;
-
-            bookFile.write((const char*)bookData, bookDataLength);
-            bookFile.close();
-
-            return true;
         }
 
         size_t find_move(const Position& pos, Move move, PolyglotEntry& entry) const
