@@ -491,7 +491,7 @@ namespace
             return (size_t)-1;
         }
 
-        void get_book_moves(const Position& pos, vector<PolyglotBookMove>& bookMoves) const
+        void get_moves(const Position& pos, vector<PolyglotBookMove>& bookMoves) const
         {
             //Clear
             bookMoves.clear();
@@ -558,43 +558,30 @@ namespace
             if (Utility::is_empty_filename(f))
                 return true;
 
-            ifstream in(Utility::map_path(f), ios::in | ios::binary | ios::ate);
-            if (!in.is_open())
+            Utility::MemMappedFile mmf;
+            if (!mmf.map(Utility::map_path(f), false))
             {
                 sync_cout << "info string Could not open book file: " << f << sync_endl;
                 return false;
             }
 
-            size_t inSize = in.tellg();
-            if (inSize == 0)
-            {
-                sync_cout << "info string The book file [" << f << "] is empty" << sync_endl;
-                return false;
-            }
-
-            char *inData = (char*)malloc(inSize);
+            void *inData = malloc(mmf.data_length());
             if (!inData)
             {
-                sync_cout << "info string Could not allocate " << Utility::format_bytes(inSize, 2) << " of memory for reading book file: " << f << sync_endl;
+                sync_cout << "info string Could not allocate " << Utility::format_bytes(mmf.data_length(), 2) << " of memory for reading book file: " << f << sync_endl;
                 return false;
             }
             
             //Read
-            in.seekg(ios::beg);
-            in.read(inData, inSize);
-            if (!in)
-            {
-                free(inData);
-                inData = nullptr;
-
-                sync_cout << "info string Could not read " << Utility::format_bytes(inSize, 2) << " from book file: " << f << sync_endl;
-                return false;
-            }
+            memcpy(inData, mmf.data(), mmf.data_length());
 
             //Assign variables and read data from file
-            bookDataLength = inSize;
+            bookDataLength = mmf.data_length();
             bookData = (unsigned char *)inData;
             filename = f;
+
+            //Close the book file
+            mmf.unmap();
 
             sync_cout << "info string Book file opened successfully: " << f << sync_endl;
 
@@ -607,7 +594,7 @@ namespace
                 return MOVE_NONE;
 
             vector<PolyglotBookMove> bookMoves;
-            get_book_moves(pos, bookMoves);
+            get_moves(pos, bookMoves);
 
             if (!bookMoves.size())
                 return MOVE_NONE;
@@ -690,7 +677,7 @@ namespace
             }
 
             vector<PolyglotBookMove> bookMoves;
-            get_book_moves(pos, bookMoves);
+            get_moves(pos, bookMoves);
 
             if (bookMoves.size() == 0)
             {
