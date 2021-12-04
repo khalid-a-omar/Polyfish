@@ -17,6 +17,8 @@ This distribution of Polyfish consists of the following files:
 
   * [src](https://github.com/khalid-a-omar/Polyfish/blob/main/src), a subdirectory containing the full source code. *Click [here](https://github.com/official-stockfish/Stockfish/tree/master/src) to see the original source code of Stockfish*
 
+  * [Tools](https://github.com/khalid-a-omar/Polyfish/blob/main/Tools), a subdirectory containing scripts used to create Windows and Linux builds.
+
 ## UCI options
 
 Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
@@ -77,7 +79,6 @@ Polyfish also supports the following UCI command
 	Polyglot book 1: MyNarrowBook.bin
 	1 : e2e4 , count: 8822
 	2 : d2d4 , count: 6644
-	3 : g1f3 , count: 2047
 
 	Polyglot book 2: MyWideBook.bin
 	1 : e2e4 , count: 9768
