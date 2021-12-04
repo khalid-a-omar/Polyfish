@@ -284,7 +284,7 @@ namespace Utility
         {
         }
 
-        MemMappedFile::~MemMappedFile()
+        ~MemMappedFile()
         {
             unmap();
         }
