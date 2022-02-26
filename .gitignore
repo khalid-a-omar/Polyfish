@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+/.vs/*
+/src/*.nnue
+/Out/*
+/Polyfish.vcxproj.user
+/Polyfish_x86-64-sse41-popcnt.exe
