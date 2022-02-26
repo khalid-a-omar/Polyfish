@@ -8,6 +8,7 @@ SET MSYS_BIN=C:\msys64\usr\bin
 SET MINGW_PATH=C:\msys64\mingw64
 SET PATH=%MINGW_PATH%\bin;%MSYS_BIN%;%SDE_PATH%;%PATH%
 SET SDE_EXE=C:/SDE/sde-external-9.0.0-2021-11-07-win/sde.exe
+SET 7Z=C:\Program Files\7-Zip\7z.exe
 
 :Main
 	CALL :Setup                       || (PAUSE & EXIT /B 1)
@@ -76,9 +77,11 @@ SET SDE_EXE=C:/SDE/sde-external-9.0.0-2021-11-07-win/sde.exe
 	
 	REM Do it
 	make.exe clean
-	make.exe profile-build ARCH=%~1 COMP=mingw -j 8 || (PAUSE & EXIT /B 1)
+	make.exe profile-build ARCH=%~1 COMP=mingw -j 4 || (PAUSE & EXIT /B 1)
 	strip.exe Polyfish.exe || EXIT /B 1
-	MOVE /Y Polyfish.exe "%BUILD_DIR%\Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
+	REN Polyfish.exe "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
+	"%7Z%" a -tzip "%BUILD_DIR%\Polyfish_%DateString%_%~1.zip" "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	make.exe clean || (PAUSE & EXIT /B 1)
+	ERASE "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	POPD
 	EXIT /B 0
