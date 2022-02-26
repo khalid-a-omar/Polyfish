@@ -7,10 +7,7 @@ SETLOCAL EnableExtensions
 SET MSYS_BIN=C:\msys64\usr\bin
 SET MINGW_PATH=C:\msys64\mingw64
 SET PATH=%MINGW_PATH%\bin;%MSYS_BIN%;%SDE_PATH%;%PATH%
-SET SDE_EXE=C:/SDE/sde-external-8.69.1-2021-07-18-win/sde.exe
-
-SET ROOT_DIR=%~dp0\..
-SET SRC_DIR=%ROOT_DIR%\src
+SET SDE_EXE=C:/SDE/sde-external-9.0.0-2021-11-07-win/sde.exe
 
 :Main
 	CALL :Setup                       || (PAUSE & EXIT /B 1)
@@ -23,6 +20,12 @@ SET SRC_DIR=%ROOT_DIR%\src
 					 
 	PAUSE
 	EXIT /B 0
+	
+:SetDir
+	PUSHD "%~2"
+	SET "%~1=%CD%"
+	POPD
+	EXIT /B 0
 
 :Setup
 	REM Construct build date string as YYMMDD to be used in the exe name
@@ -34,23 +37,29 @@ SET SRC_DIR=%ROOT_DIR%\src
 
 	REM Construct date string as YYMMDD
 	SET DateString=%YY:~-2%%MM:~-2%%DD:~-2%
+	
+	REM Setup folders
+	CALL :SetDir "ROOT_DIR" "%~dp0.."
+	CALL :SetDir "SRC_DIR" "%~dp0..\src"	
 		
 	REM Create build directory
-	SET BuildDir=%ROOT_DIR%Build\Windows\%DateString%
-	RD /S /Q "%BuildDir%" 1>NUL 2>&1
-	MKDIR "%BuildDir%" 1>NUL 2>&1
-	IF NOT EXIST "%BuildDir%" (
-		ECHO Could not created folder: %BuildDir%
+	SET "BUILD_DIR=%ROOT_DIR%\Tools\Build\Windows\%DateString%"
+	RD /S /Q "%BUILD_DIR%" 1>NUL 2>&1
+	MKDIR "%BUILD_DIR%" 1>NUL 2>&1
+	IF NOT EXIST "%BUILD_DIR%" (
+		ECHO Could not created folder: %BUILD_DIR%
 		EXIT /B 1
 	)
 	
 	REM Print some info
-	ECHO Date string : %DateString%
-	ECHO Build folder: %BuildDir%
+	ECHO Date string      : %DateString%
+	ECHO Root folder      : %ROOT_DIR%
+	ECHO Source codefolder: %SRC_DIR%
+	ECHO Build folder     : %BUILD_DIR%
 	EXIT /B 0
 
 :Build
-	TITLE Building Polyfish %~1 in %BuildDir%
+	TITLE Building Polyfish %~1 in %BUILD_DIR%
 	PUSHD "%SRC_DIR%"
 	
 	REM Do we need SDE?
@@ -69,7 +78,7 @@ SET SRC_DIR=%ROOT_DIR%\src
 	make.exe clean
 	make.exe profile-build ARCH=%~1 COMP=mingw -j 8 || (PAUSE & EXIT /B 1)
 	strip.exe Polyfish.exe || EXIT /B 1
-	MOVE /Y Polyfish.exe "%BuildDir%\Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
+	MOVE /Y Polyfish.exe "%BUILD_DIR%\Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	make.exe clean || (PAUSE & EXIT /B 1)
 	POPD
 	EXIT /B 0

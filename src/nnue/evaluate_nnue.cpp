@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ namespace Polyfish::Eval::NNUE {
   {
     write_little_endian<std::uint32_t>(stream, Version);
     write_little_endian<std::uint32_t>(stream, hashValue);
-    write_little_endian<std::uint32_t>(stream, desc.size());
+    write_little_endian<std::uint32_t>(stream, (std::uint32_t)desc.size());
     stream.write(&desc[0], desc.size());
     return !stream.fail();
   }
@@ -148,29 +148,24 @@ namespace Polyfish::Eval::NNUE {
 #if defined(ALIGNAS_ON_STACK_VARIABLES_BROKEN)
     TransformedFeatureType transformedFeaturesUnaligned[
       FeatureTransformer::BufferSize + alignment / sizeof(TransformedFeatureType)];
-    char bufferUnaligned[Network::BufferSize + alignment];
 
     auto* transformedFeatures = align_ptr_up<alignment>(&transformedFeaturesUnaligned[0]);
-    auto* buffer = align_ptr_up<alignment>(&bufferUnaligned[0]);
 #else
     alignas(alignment)
       TransformedFeatureType transformedFeatures[FeatureTransformer::BufferSize];
-    alignas(alignment) char buffer[Network::BufferSize];
 #endif
 
     ASSERT_ALIGNED(transformedFeatures, alignment);
-    ASSERT_ALIGNED(buffer, alignment);
 
-    const std::size_t bucket = (pos.count<ALL_PIECES>() - 1) / 4;
+    const int bucket = (pos.count<ALL_PIECES>() - 1) / 4;
     const auto psqt = featureTransformer->transform(pos, transformedFeatures, bucket);
-    const auto positional = network[bucket]->propagate(transformedFeatures, buffer)[0];
+    const auto positional = network[bucket]->propagate(transformedFeatures);
 
-    // Give more value to positional evaluation when material is balanced
-    if (   adjusted
-        && abs(pos.non_pawn_material(WHITE) - pos.non_pawn_material(BLACK)) <= RookValueMg - BishopValueMg)
-      return  static_cast<Value>(((128 - delta) * psqt + (128 + delta) * positional) / 128 / OutputScale);
+    // Give more value to positional evaluation when adjusted flag is set
+    if (adjusted)
+        return static_cast<Value>(((128 - delta) * psqt + (128 + delta) * positional) / 128 / OutputScale);
     else
-      return static_cast<Value>((psqt + positional) / OutputScale);
+        return static_cast<Value>((psqt + positional) / OutputScale);
   }
 
   struct NnueEvalTrace {
@@ -191,27 +186,20 @@ namespace Polyfish::Eval::NNUE {
 #if defined(ALIGNAS_ON_STACK_VARIABLES_BROKEN)
     TransformedFeatureType transformedFeaturesUnaligned[
       FeatureTransformer::BufferSize + alignment / sizeof(TransformedFeatureType)];
-    char bufferUnaligned[Network::BufferSize + alignment];
 
     auto* transformedFeatures = align_ptr_up<alignment>(&transformedFeaturesUnaligned[0]);
-    auto* buffer = align_ptr_up<alignment>(&bufferUnaligned[0]);
 #else
     alignas(alignment)
       TransformedFeatureType transformedFeatures[FeatureTransformer::BufferSize];
-    alignas(alignment) char buffer[Network::BufferSize];
 #endif
 
     ASSERT_ALIGNED(transformedFeatures, alignment);
-    ASSERT_ALIGNED(buffer, alignment);
 
     NnueEvalTrace t{};
     t.correctBucket = (pos.count<ALL_PIECES>() - 1) / 4;
-    for (std::size_t bucket = 0; bucket < LayerStacks; ++bucket) {
-      const auto psqt = featureTransformer->transform(pos, transformedFeatures, bucket);
-      const auto output = network[bucket]->propagate(transformedFeatures, buffer);
-
-      int materialist = psqt;
-      int positional  = output[0];
+    for (IndexType bucket = 0; bucket < LayerStacks; ++bucket) {
+      const auto materialist = featureTransformer->transform(pos, transformedFeatures, bucket);
+      const auto positional = network[bucket]->propagate(transformedFeatures);
 
       t.psqt[bucket] = static_cast<Value>( materialist / OutputScale );
       t.positional[bucket] = static_cast<Value>( positional / OutputScale );
