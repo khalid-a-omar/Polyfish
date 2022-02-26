@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -121,6 +121,9 @@ class RunningAverage {
       bool is_greater(int64_t a, int64_t b)
         { return b * average > a * PERIOD * RESOLUTION ; }
 
+      int64_t value()
+        { return average / (PERIOD * RESOLUTION); }
+
   private :
       static constexpr int64_t PERIOD     = 4096;
       static constexpr int64_t RESOLUTION = 1024;
@@ -157,7 +160,7 @@ private:
 
 /// sigmoid(t, x0, y0, C, P, Q) implements a sigmoid-like function using only integers,
 /// with the following properties:
-/// 
+///
 ///  -  sigmoid is centered in (x0, y0)
 ///  -  sigmoid has amplitude [-P/Q , P/Q] instead of [-1 , +1]
 ///  -  limit is (y0 - P/Q) when t tends to -infinity

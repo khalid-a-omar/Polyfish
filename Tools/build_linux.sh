@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Environment
-export SDE_PATH="~/sde-external-8.69.1-2021-07-18-lin/sde"
+export SDE_PATH="~/sde-external-9.0.0-2021-11-07-lin/sde"
 
 #Little setup
 DateString=$(date +'%y%m%d')

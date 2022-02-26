@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -108,6 +108,7 @@ namespace Eval {
 
                 MemoryBuffer buffer(const_cast<char*>(reinterpret_cast<const char*>(gEmbeddedNNUEData)),
                                     size_t(gEmbeddedNNUESize));
+                (void) gEmbeddedNNUEEnd; // Silence warning on unused variable
 
                 istream stream(&buffer);
                 if (load_eval(eval_file, stream))
@@ -192,8 +193,8 @@ using namespace Trace;
 namespace {
 
   // Threshold for lazy and space evaluation
-  constexpr Value LazyThreshold1    =  Value(3130);
-  constexpr Value LazyThreshold2    =  Value(2204);
+  constexpr Value LazyThreshold1    =  Value(3631);
+  constexpr Value LazyThreshold2    =  Value(2084);
   constexpr Value SpaceThreshold    =  Value(11551);
 
   // KingAttackWeights[PieceType] contains king attack weights by piece type
@@ -1069,8 +1070,8 @@ make_v:
         && pos.piece_on(SQ_G7) == B_PAWN)
         correction += CorneredBishop;
 
-    return pos.side_to_move() == WHITE ?  Value(5 * correction)
-                                       : -Value(5 * correction);
+    return pos.side_to_move() == WHITE ?  Value(3 * correction)
+                                       : -Value(3 * correction);
   }
 
 } // namespace Eval
@@ -1082,23 +1083,28 @@ make_v:
 Value Eval::evaluate(const Position& pos) {
 
   Value v;
+  bool useClassical = false;
 
-  // Deciding between classical and NNUE eval: for high PSQ imbalance we use classical,
+  // Deciding between classical and NNUE eval (~10 Elo): for high PSQ imbalance we use classical,
   // but we switch to NNUE during long shuffling or with high material on the board.
-
   if (  !useNNUE
-      || abs(eg_value(pos.psq_score())) * 5 > (850 + pos.non_pawn_material() / 64) * (5 + pos.rule50_count()))
-      v = Evaluation<NO_TRACE>(pos).value();          // classical
-  else
+      || abs(eg_value(pos.psq_score())) * 5 > (849 + pos.non_pawn_material() / 64) * (5 + pos.rule50_count()))
   {
-       int scale = 1049
-                   +  8 * pos.count<PAWN>()
-                   + 20 * pos.non_pawn_material() / 1024;
+      v = Evaluation<NO_TRACE>(pos).value();          // classical
+      useClassical = abs(v) >= 298;
+  }
 
+  // If result of a classical evaluation is much lower than threshold fall back to NNUE
+  if (useNNUE && !useClassical)
+  {
        Value nnue     = NNUE::evaluate(pos, true);     // NNUE
+       int scale      = 1136 + 20 * pos.non_pawn_material() / 1024;
        Color stm      = pos.side_to_move();
        Value optimism = pos.this_thread()->optimism[stm];
+       Value psq      = (stm == WHITE ? 1 : -1) * eg_value(pos.psq_score());
+       int complexity = 35 * abs(nnue - psq) / 256;
 
+       optimism = optimism * (44 + complexity) / 32;
        v = (nnue + optimism) * scale / 1024 - optimism;
 
        if (pos.is_chess960())
@@ -1106,7 +1112,7 @@ Value Eval::evaluate(const Position& pos) {
   }
 
   // Damp down the evaluation linearly when shuffling
-  v = v * (207 - pos.rule50_count()) / 207;
+  v = v * (208 - pos.rule50_count()) / 208;
 
   // Guarantee evaluation does not hit the tablebase range
   v = std::clamp(v, VALUE_TB_LOSS_IN_MAX_PLY + 1, VALUE_TB_WIN_IN_MAX_PLY - 1);

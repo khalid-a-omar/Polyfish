@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -523,7 +523,7 @@ int best_node(size_t idx) {
   if (!fun1)
       return -1;
 
-  // First call to GetLogicalProcessorInformationEx() to get returnLength. 
+  // First call to GetLogicalProcessorInformationEx() to get returnLength.
   // We expect the call to fail due to null buffer.
   if (fun1(RelationAll, nullptr, &returnLength))
       return -1;
@@ -597,13 +597,13 @@ void bindThisThread(size_t idx) {
   if (!fun2 || !fun3)
       return;
 
-  if (!fun4 || !fun5) 
+  if (!fun4 || !fun5)
   {
       GROUP_AFFINITY affinity;
       if (fun2(node, &affinity))                                                 // GetNumaNodeProcessorMaskEx
           fun3(GetCurrentThread(), &affinity, nullptr);                          // SetThreadGroupAffinity
-  } 
-  else 
+  }
+  else
   {
       // If a numa node has more than one processor group, we assume they are
       // sized equal and we spread threads evenly across the groups.

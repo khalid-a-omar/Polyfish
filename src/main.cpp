@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,9 +23,6 @@
 #include "position.h"
 #include "psqt.h"
 #include "search.h"
-#if defined(POLYFISH)
-#include "polyglot/book.h"
-#endif
 #include "syzygy/tbprobe.h"
 #include "thread.h"
 #include "tt.h"
@@ -48,9 +45,6 @@ int main(int argc, char* argv[]) {
   Threads.set(size_t(Options["Threads"]));
   Search::clear(); // After threads are up
   Eval::NNUE::init();
-#if defined(POLYFISH)
-  Polyglot::init();
-#endif
 
   UCI::loop(argc, argv);
 
