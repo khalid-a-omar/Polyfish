@@ -8,3 +8,4 @@
 /Tools/Build/*
 /Polyfish.vcxproj.user
 /Polyfish_x86-64-sse41-popcnt.exe
+/Tools/ssh.bat
