@@ -4,6 +4,9 @@
 
 /.vs/*
 /src/*.nnue
+/src/*.o
+/src/Polyfish.exe
+/src/Polyfish
 /Out/*
 /Tools/Build/*
 /Polyfish.vcxproj.user
