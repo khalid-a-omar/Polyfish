@@ -13,7 +13,7 @@ build()
 {
     pushd $SourceFolder
     make clean                                                                    || { echo clean failed; return 1; }
-    make profile-build ARCH=$1 -j 2                                               || { echo profile-build failed; return 1; }	
+    make profile-build ARCH=$1 -j 8                                               || { echo profile-build failed; return 1; }	
     strip Polyfish                                                                || { echo strip failed; return 1; }
     mv Polyfish Polyfish_${DateString}_$1                                         || { echo moving/renaming failed; return 1; }
 	zip -r ${BuildFolder}/Polyfish_${DateString}_$1.zip Polyfish_${DateString}_$1 || { echo compressing failed; return 1; }

@@ -79,7 +79,7 @@ SET "_7Z=C:\Program Files\7-Zip\7z.exe"
 	
 	REM Do it
 	make.exe clean
-	make.exe profile-build ARCH=%~1 COMP=mingw -j 4 || (PAUSE & EXIT /B 1)
+	make.exe profile-build ARCH=%~1 COMP=mingw -j 8 || (PAUSE & EXIT /B 1)
 	strip.exe Polyfish.exe || EXIT /B 1
 	REN Polyfish.exe "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	"%_7Z%" a -tzip "%BUILD_DIR%\Polyfish_%DateString%_%~1.zip" "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
