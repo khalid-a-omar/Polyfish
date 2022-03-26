@@ -5,7 +5,7 @@ export SDE_PATH="~/sde-external-9.0.0-2021-11-07-lin/sde"
 
 #Little setup
 DateString=$(date +'%y%m%d')
-RootFolder=/mnt/hgfs/C/MyProjects/Polyfish
+RootFolder=/mnt/C/MyProjects/Polyfish
 SourceFolder=${RootFolder}/src
 BuildFolder=${RootFolder}/Tools/Build/Linux/${DateString}
 
