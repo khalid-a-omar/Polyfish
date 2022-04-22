@@ -158,7 +158,11 @@ string engine_info(bool to_uci) {
   if (Version.empty())
   {
       date >> month >> day >> year;
+#if defined(POLYFISH)
+      ss << setw(2) << year.substr(2) << setw(2) << (1 + months.find(month) / 4) << day;
+#else
       ss << setw(2) << day << setw(2) << (1 + months.find(month) / 4) << year.substr(2);
+#endif
   }
 
   ss << (to_uci  ? "\nid author ": " by ")
