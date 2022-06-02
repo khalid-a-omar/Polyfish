@@ -2,7 +2,7 @@
   Polyfish, a UCI chess playing engine derived from Stockfish
   Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
 
-  Stockfish is free software: you can redistribute it and/or modify
+  Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
@@ -210,8 +210,8 @@ namespace {
      // Coefficients of a 3rd order polynomial fit based on fishtest data
      // for two parameters needed to transform eval to the argument of a
      // logistic function.
-     double as[] = {-3.68389304,  30.07065921, -60.52878723, 149.53378557};
-     double bs[] = {-2.0181857,   15.85685038, -29.83452023,  47.59078827};
+     double as[] = {-1.17202460e-01, 5.94729104e-01, 1.12065546e+01, 1.22606222e+02};
+     double bs[] = {-1.79066759,  11.30759193, -17.43677612,  36.47147479};
      double a = (((as[0] * m + as[1]) * m + as[2]) * m) + as[3];
      double b = (((bs[0] * m + bs[1]) * m + bs[2]) * m) + bs[3];
 
@@ -291,8 +291,22 @@ void UCI::loop(int argc, char* argv[]) {
               filename = f;
           Eval::NNUE::save_eval(filename);
       }
+      else if (token == "--help" || token == "help" || token == "--license" || token == "license")
+#if defined(POLYFISH)
+          sync_cout << "\nPolyfish is a powerful chess engine and free software licensed under the GNU GPLv3."
+                       "\nPolyfish is normally used with a separate graphical user interface (GUI)."
+                       "\nPolyfish implements the universal chess interface (UCI) to exchange information."
+                       "\nFor further information see https://github.com/khalid-a-omar/Polyfish#readme"
+                       "\nor the corresponding README.md and Copying.txt files distributed with this program.\n" << sync_endl;
+#else
+          sync_cout << "\nStockfish is a powerful chess engine and free software licensed under the GNU GPLv3."
+                       "\nStockfish is normally used with a separate graphical user interface (GUI)."
+                       "\nStockfish implements the universal chess interface (UCI) to exchange information."
+                       "\nFor further information see https://github.com/official-stockfish/Stockfish#readme"
+                       "\nor the corresponding README.md and Copying.txt files distributed with this program.\n" << sync_endl;
+#endif
       else if (!token.empty() && token[0] != '#')
-          sync_cout << "Unknown command: " << cmd << sync_endl;
+          sync_cout << "Unknown command: '" << cmd << "'. Type help for more information." << sync_endl;
 
   } while (token != "quit" && argc == 1); // Command line args are one-shot
 }

@@ -49,7 +49,7 @@
     <ClInclude Include="src\nnue\features\half_ka_v2_hm.h" />
     <ClInclude Include="src\nnue\layers\affine_transform.h" />
     <ClInclude Include="src\nnue\layers\clipped_relu.h" />
-    <ClInclude Include="src\nnue\layers\input_slice.h" />
+    <ClInclude Include="src\nnue\layers\sqr_clipped_relu.h" />
     <ClInclude Include="src\nnue\nnue_accumulator.h" />
     <ClInclude Include="src\nnue\nnue_architecture.h" />
     <ClInclude Include="src\nnue\nnue_common.h" />
