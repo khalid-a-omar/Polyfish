@@ -88,8 +88,8 @@ namespace {
   }
 
   // Add a small random component to draw evaluations to avoid 3-fold blindness
-  Value value_draw(Thread* thisThread) {
-    return VALUE_DRAW + Value(2 * (thisThread->nodes & 1) - 1);
+  Value value_draw(const Thread* thisThread) {
+    return VALUE_DRAW - 1 + Value(thisThread->nodes & 0x2);
   }
 
   // Skill structure is used to implement strength limit. If we have an uci_elo then
@@ -119,7 +119,7 @@ namespace {
 
   Value value_to_tt(Value v, int ply);
   Value value_from_tt(Value v, int ply, int r50c);
-  void update_pv(Move* pv, Move move, Move* childPv);
+  void update_pv(Move* pv, Move move, const Move* childPv);
   void update_continuation_histories(Stack* ss, Piece pc, Square to, int bonus);
   void update_quiet_stats(const Position& pos, Stack* ss, Move move, int bonus);
   void update_all_stats(const Position& pos, Stack* ss, Move bestMove, Value bestValue, Value beta, Square prevSq,
@@ -331,7 +331,7 @@ void Thread::search() {
 
   multiPV = std::min(multiPV, rootMoves.size());
 
-  complexityAverage.set(202, 1);
+  complexityAverage.set(174, 1);
 
   trend         = SCORE_ZERO;
   optimism[ us] = Value(39);
@@ -496,7 +496,7 @@ void Thread::search() {
           double reduction = (1.56 + mainThread->previousTimeReduction) / (2.20 * timeReduction);
           double bestMoveInstability = 1 + 1.7 * totBestMoveChanges / Threads.size();
           int complexity = mainThread->complexityAverage.value();
-          double complexPosition = std::clamp(1.0 + (complexity - 326) / 1618.1, 0.5, 1.5);
+          double complexPosition = std::clamp(1.0 + (complexity - 277) / 1819, 0.5, 1.5);
 
           double totalTime = Time.optimum() * fallingEval * reduction * bestMoveInstability * complexPosition;
 
@@ -761,7 +761,9 @@ namespace {
         // Never assume anything about values stored in TT
         ss->staticEval = eval = tte->eval();
         if (eval == VALUE_NONE)
-            ss->staticEval = eval = evaluate(pos);
+            ss->staticEval = eval = evaluate(pos, &complexity);
+        else // Fall back to (semi)classical complexity for TT hits, the NNUE complexity is lost
+            complexity = abs(ss->staticEval - pos.psq_eg_stm());
 
         // Randomize draw evaluation
         if (eval == VALUE_DRAW)
@@ -774,12 +776,14 @@ namespace {
     }
     else
     {
-        ss->staticEval = eval = evaluate(pos);
+        ss->staticEval = eval = evaluate(pos, &complexity);
 
         // Save static evaluation into transposition table
         if (!excludedMove)
             tte->save(posKey, VALUE_NONE, ss->ttPv, BOUND_NONE, DEPTH_NONE, MOVE_NONE, eval);
     }
+
+    thisThread->complexityAverage.update(complexity);
 
     // Use static evaluation difference to improve quiet move ordering (~3 Elo)
     if (is_ok((ss-1)->currentMove) && !(ss-1)->inCheck && !priorCapture)
@@ -797,9 +801,6 @@ namespace {
                   :                                    175;
 
     improving = improvement > 0;
-    complexity = abs(ss->staticEval - (us == WHITE ? eg_value(pos.psq_score()) : -eg_value(pos.psq_score())));
-
-    thisThread->complexityAverage.update(complexity);
 
     // Step 7. Razoring.
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
@@ -828,7 +829,7 @@ namespace {
         && (ss-1)->statScore < 14695
         &&  eval >= beta
         &&  eval >= ss->staticEval
-        &&  ss->staticEval >= beta - 15 * depth - improvement / 15 + 198 + complexity / 28
+        &&  ss->staticEval >= beta - 15 * depth - improvement / 15 + 201 + complexity / 24
         && !excludedMove
         &&  pos.non_pawn_material(us)
         && (ss->ply >= thisThread->nmpMinPly || us != thisThread->nmpColor))
@@ -836,7 +837,7 @@ namespace {
         assert(eval - beta >= 0);
 
         // Null move dynamic reduction based on depth, eval and complexity of position
-        Depth R = std::min(int(eval - beta) / 147, 5) + depth / 3 + 4 - (complexity > 753);
+        Depth R = std::min(int(eval - beta) / 147, 5) + depth / 3 + 4 - (complexity > 650);
 
         ss->currentMove = MOVE_NULL;
         ss->continuationHistory = &thisThread->continuationHistory[0][0][NO_PIECE][0];
@@ -892,8 +893,6 @@ namespace {
         assert(probCutBeta < VALUE_INFINITE);
 
         MovePicker mp(pos, ttMove, probCutBeta - ss->staticEval, depth - 3, &captureHistory);
-        bool ttPv = ss->ttPv;
-        ss->ttPv = false;
 
         while ((move = mp.next_move()) != MOVE_NONE)
             if (move != excludedMove && pos.legal(move))
@@ -919,27 +918,24 @@ namespace {
 
                 if (value >= probCutBeta)
                 {
-                    // if transposition table doesn't have equal or more deep info write probCut data into it
-                    if ( !(ss->ttHit
-                       && tte->depth() >= depth - 3
-                       && ttValue != VALUE_NONE))
-                        tte->save(posKey, value_to_tt(value, ss->ply), ttPv,
-                            BOUND_LOWER,
-                            depth - 3, move, ss->staticEval);
+                    // Save ProbCut data into transposition table
+                    tte->save(posKey, value_to_tt(value, ss->ply), ss->ttPv, BOUND_LOWER, depth - 3, move, ss->staticEval);
                     return value;
                 }
             }
-         ss->ttPv = ttPv;
     }
 
-    // Step 11. If the position is not in TT, decrease depth by 2 or 1 depending on node type (~3 Elo)
-    if (   PvNode
-        && depth >= 3
+    // Step 11. If the position is not in TT, decrease depth by 3.
+    // Use qsearch if depth is equal or below zero (~4 Elo)
+    if (    PvNode
         && !ttMove)
-        depth -= 2;
+        depth -= 3;
 
-    if (   cutNode
-        && depth >= 8
+    if (depth <= 0)
+        return qsearch<PV>(pos, ss, alpha, beta);
+
+    if (    cutNode
+        &&  depth >= 8
         && !ttMove)
         depth--;
 
@@ -1193,7 +1189,7 @@ moves_loop: // When in check, search starts here
 
           // Decrease reduction for PvNodes based on depth
           if (PvNode)
-              r -= 1 + 15 / ( 3 + depth );
+              r -= 1 + 15 / (3 + depth);
 
           // Increase reduction if next ply has a lot of fail high else reset count to 0
           if ((ss+1)->cutoffCnt > 3 && !PvNode)
@@ -1208,15 +1204,10 @@ moves_loop: // When in check, search starts here
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
           r -= ss->statScore / 15914;
 
-          // In general we want to cap the LMR depth search at newDepth. But if reductions
-          // are really negative and movecount is low, we allow this move to be searched
-          // deeper than the first move (this may lead to hidden double extensions).
-          int deeper =   r >= -1                   ? 0
-                       : moveCount <= 4            ? 2
-                       : PvNode || cutNode         ? 1
-                       :                             0;
-
-          Depth d = std::clamp(newDepth - r, 1, newDepth + deeper);
+          // In general we want to cap the LMR depth search at newDepth, but when
+          // reduction is negative, we allow this move a limited search extension
+          // beyond the first move depth. This may lead to hidden double extensions.
+          Depth d = std::clamp(newDepth - r, 1, newDepth + 1);
 
           value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, d, true);
 
@@ -1471,8 +1462,7 @@ moves_loop: // When in check, search starts here
         && ss->ttHit
         && tte->depth() >= ttDepth
         && ttValue != VALUE_NONE // Only in case of TT access race
-        && (ttValue >= beta ? (tte->bound() & BOUND_LOWER)
-                            : (tte->bound() & BOUND_UPPER)))
+        && (tte->bound() & (ttValue >= beta ? BOUND_LOWER : BOUND_UPPER)))
         return ttValue;
 
     // Evaluate the position statically
@@ -1588,14 +1578,14 @@ moves_loop: // When in check, search starts here
                                                                 [to_sq(move)];
 
       // Continuation history based pruning (~2 Elo)
-      if (  !capture
+      if (   !capture
           && bestValue > VALUE_TB_LOSS_IN_MAX_PLY
           && (*contHist[0])[pos.moved_piece(move)][to_sq(move)] < CounterMovePruneThreshold
           && (*contHist[1])[pos.moved_piece(move)][to_sq(move)] < CounterMovePruneThreshold)
           continue;
 
       // movecount pruning for quiet check evasions
-      if (  bestValue > VALUE_TB_LOSS_IN_MAX_PLY
+      if (   bestValue > VALUE_TB_LOSS_IN_MAX_PLY
           && quietCheckEvasions > 1
           && !capture
           && ss->inCheck)
@@ -1696,7 +1686,7 @@ moves_loop: // When in check, search starts here
 
   // update_pv() adds current move and appends child pv[]
 
-  void update_pv(Move* pv, Move move, Move* childPv) {
+  void update_pv(Move* pv, Move move, const Move* childPv) {
 
     for (*pv++ = move; childPv && *childPv != MOVE_NONE; )
         *pv++ = *childPv++;
@@ -1709,19 +1699,18 @@ moves_loop: // When in check, search starts here
   void update_all_stats(const Position& pos, Stack* ss, Move bestMove, Value bestValue, Value beta, Square prevSq,
                         Move* quietsSearched, int quietCount, Move* capturesSearched, int captureCount, Depth depth) {
 
-    int bonus1, bonus2;
     Color us = pos.side_to_move();
     Thread* thisThread = pos.this_thread();
     CapturePieceToHistory& captureHistory = thisThread->captureHistory;
     Piece moved_piece = pos.moved_piece(bestMove);
     PieceType captured = type_of(pos.piece_on(to_sq(bestMove)));
-
-    bonus1 = stat_bonus(depth + 1);
-    bonus2 = bestValue > beta + PawnValueMg ? bonus1               // larger bonus
-                                            : stat_bonus(depth);   // smaller bonus
+    int bonus1 = stat_bonus(depth + 1);
 
     if (!pos.capture(bestMove))
     {
+        int bonus2 = bestValue > beta + PawnValueMg ? bonus1               // larger bonus
+                                                    : stat_bonus(depth);   // smaller bonus
+
         // Increase stats for the best move in case it was a quiet move
         update_quiet_stats(pos, ss, bestMove, bonus2);
 
