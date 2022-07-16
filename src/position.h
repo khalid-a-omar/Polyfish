@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2004-2022 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -344,7 +344,7 @@ inline Score Position::psq_score() const {
 }
 
 inline Value Position::psq_eg_stm() const {
-    return (sideToMove == WHITE ? 1 : -1) * eg_value(psq);
+  return (sideToMove == WHITE ? 1 : -1) * eg_value(psq);
 }
 
 inline Value Position::non_pawn_material(Color c) const {
