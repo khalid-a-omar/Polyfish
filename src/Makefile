@@ -691,7 +691,7 @@ ifeq ($(debug), no)
 		CXXFLAGS += -flto
 		LDFLAGS += $(CXXFLAGS) -flto=jobserver
 	else
-		CXXFLAGS += -flto
+		CXXFLAGS += -flto=auto
 		LDFLAGS += $(CXXFLAGS)
 	endif
 
@@ -699,7 +699,7 @@ ifeq ($(debug), no)
 # the tool chain requires gcc version 10.1 or later.
 	else ifeq ($(comp),mingw)
 	ifneq ($(arch),i386)
-		CXXFLAGS += -flto
+		CXXFLAGS += -flto=auto
 		LDFLAGS += $(CXXFLAGS) -save-temps
 	endif
 	endif
