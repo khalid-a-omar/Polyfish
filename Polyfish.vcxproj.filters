@@ -74,7 +74,6 @@
       <Filter>nnue\features</Filter>
     </ClInclude>
     <ClInclude Include="src\psqt.h" />
-    <ClInclude Include="src\simd.h" />
     <ClInclude Include="src\syzygy\tbprobe.h">
       <Filter>syzygy</Filter>
     </ClInclude>
@@ -88,6 +87,9 @@
       <Filter>polyglot</Filter>
     </ClInclude>
     <ClInclude Include="src\nnue\layers\sqr_clipped_relu.h">
+      <Filter>nnue\layers</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nnue\layers\simd.h">
       <Filter>nnue\layers</Filter>
     </ClInclude>
   </ItemGroup>
