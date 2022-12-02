@@ -67,9 +67,11 @@ namespace Polyfish {
 
 namespace {
 
-/// Version number. If Version is left empty, then compile date in the format
-/// DD-MM-YY and show in engine_info.
-const string Version = "";
+#if defined(POLYFISH)
+#else
+/// Version number or dev.
+const string version = "dev";
+#endif
 
 /// Our fancy logging facility. The trick here is to replace cin.rdbuf() and
 /// cout.rdbuf() with two Tie objects that tie cin and cout to a file stream. We
@@ -138,37 +140,56 @@ public:
 } // namespace
 
 
-/// engine_info() returns the full name of the current Polyfish version. This
-/// will be either "Polyfish <Tag> DD-MM-YY" (where DD-MM-YY is the date when
-/// the program was compiled) or "Polyfish <Version>", depending on whether
-/// Version is empty.
+/// engine_info() returns the full name of the current Stockfish version.
+/// For local dev compiles we try to append the commit sha and commit date
+/// from git if that fails only the local compilation date is set and "nogit" is specified:
+/// Stockfish dev-YYYYMMDD-SHA
+/// or
+/// Stockfish dev-YYYYMMDD-nogit
+///
+/// For releases (non dev builds) we only include the version number:
+/// Stockfish version
 
 string engine_info(bool to_uci) {
-
+#if defined(POLYFISH)
   const string months("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec");
-  string month, day, year;
   stringstream ss, date(__DATE__); // From compiler, format is "Sep 21 2008"
+  string month, day, year;
 
-#if defined(POLYFISH)
-  ss << "Polyfish " << Version << setfill('0');
+  date >> month >> day >> year;
+  ss << "Polyfish "
+     << setw(2) << setfill('0') << year.substr(2)
+     << setw(2) << setfill('0') << (1 + months.find(month) / 4)
+     << setw(2) << setfill('0') << day
+     << (to_uci ? "\nid author " : " by ") << "Khalid Omar";
 #else
-  ss << "Stockfish " << Version << setfill('0');
-#endif
+  stringstream ss;
+  ss << "Stockfish " << version << setfill('0');
 
-  if (Version.empty())
+  if (version == "dev")
   {
+      ss << "-";
+      #ifdef GIT_DATE
+      ss << GIT_DATE;
+      #else
+      const string months("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec");
+      string month, day, year;
+      stringstream date(__DATE__); // From compiler, format is "Sep 21 2008"
+
       date >> month >> day >> year;
-#if defined(POLYFISH)
-      ss << setw(2) << year.substr(2) << setw(2) << (1 + months.find(month) / 4) << day;
-#else
-      ss << setw(2) << day << setw(2) << (1 + months.find(month) / 4) << year.substr(2);
-#endif
+      ss << year << setw(2) << setfill('0') << (1 + months.find(month) / 4) << setw(2) << setfill('0') << day;
+      #endif
+
+      ss << "-";
+
+      #ifdef GIT_SHA
+      ss << GIT_SHA;
+      #else
+      ss << "nogit";
+      #endif
   }
 
   ss << (to_uci  ? "\nid author ": " by ")
-#if defined(POLYFISH)
-     << "Khalid Omar";
-#else
      << "the Stockfish developers (see AUTHORS file)";
 #endif
 

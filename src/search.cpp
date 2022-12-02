@@ -268,7 +268,7 @@ void MainThread::search() {
 
   // Send again PV info if we have a new best thread
   if (bestThread != this)
-      sync_cout << UCI::pv(bestThread->rootPos, bestThread->completedDepth, -VALUE_INFINITE, VALUE_INFINITE) << sync_endl;
+      sync_cout << UCI::pv(bestThread->rootPos, bestThread->completedDepth) << sync_endl;
 
   sync_cout << "bestmove " << UCI::move(bestThread->rootMoves[0].pv[0], rootPos.is_chess960());
 
@@ -333,7 +333,6 @@ void Thread::search() {
 
   complexityAverage.set(155, 1);
 
-  trend = SCORE_ZERO;
   optimism[us] = optimism[~us] = VALUE_ZERO;
 
   int searchAgainCounter = 0;
@@ -380,11 +379,7 @@ void Thread::search() {
               alpha = std::max(prev - delta,-VALUE_INFINITE);
               beta  = std::min(prev + delta, VALUE_INFINITE);
 
-              // Adjust trend and optimism based on root move's previousScore
-              int tr = 116 * prev / (std::abs(prev) + 89);
-              trend = (us == WHITE ?  make_score(tr, tr / 2)
-                                   : -make_score(tr, tr / 2));
-
+              // Adjust optimism based on root move's previousScore
               int opt = 118 * prev / (std::abs(prev) + 169);
               optimism[ us] = Value(opt);
               optimism[~us] = -optimism[us];
@@ -421,7 +416,7 @@ void Thread::search() {
                   && multiPV == 1
                   && (bestValue <= alpha || bestValue >= beta)
                   && Time.elapsed() > 3000)
-                  sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+                  sync_cout << UCI::pv(rootPos, rootDepth) << sync_endl;
 
               // In case of failing low/high increase aspiration window and
               // re-search, otherwise exit the loop.
@@ -452,7 +447,7 @@ void Thread::search() {
 
           if (    mainThread
               && (Threads.stop || pvIdx + 1 == multiPV || Time.elapsed() > 3000))
-              sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+              sync_cout << UCI::pv(rootPos, rootDepth) << sync_endl;
       }
 
       if (!Threads.stop)
@@ -799,8 +794,7 @@ namespace {
     // Step 7. Razoring.
     // If eval is really low check with qsearch if it can exceed alpha, if it can't,
     // return a fail low.
-    if (   depth <= 7
-        && eval < alpha - 369 - 254 * depth * depth)
+    if (eval < alpha - 369 - 254 * depth * depth)
     {
         value = qsearch<NonPV>(pos, ss, alpha - 1, alpha);
         if (value < alpha)
@@ -1202,7 +1196,7 @@ moves_loop: // When in check, search starts here
                          - 4433;
 
           // Decrease/increase reduction for moves with a good/bad history (~30 Elo)
-          r -= ss->statScore / 13628;
+          r -= ss->statScore / (13628 + 4000 * (depth > 7 && depth < 19));
 
           // In general we want to cap the LMR depth search at newDepth, but when
           // reduction is negative, we allow this move a limited search extension
@@ -1214,8 +1208,15 @@ moves_loop: // When in check, search starts here
           // Do full depth search when reduced LMR search fails high
           if (value > alpha && d < newDepth)
           {
+              // Adjust full depth search based on LMR results - if result
+              // was good enough search deeper, if it was bad enough search shallower
               const bool doDeeperSearch = value > (alpha + 64 + 11 * (newDepth - d));
-              value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth + doDeeperSearch, !cutNode);
+              const bool doShallowerSearch = value < bestValue + newDepth;
+
+              newDepth += doDeeperSearch - doShallowerSearch;
+
+              if (newDepth > d)
+                  value = -search<NonPV>(pos, ss+1, -(alpha+1), -alpha, newDepth, !cutNode);
 
               int bonus = value > alpha ?  stat_bonus(newDepth)
                                         : -stat_bonus(newDepth);
@@ -1269,6 +1270,8 @@ moves_loop: // When in check, search starts here
           {
               rm.score = value;
               rm.selDepth = thisThread->selDepth;
+              rm.scoreLowerbound = value >= beta;
+              rm.scoreUpperbound = value <= alpha;
               rm.pv.resize(1);
 
               assert((ss+1)->pv);
@@ -1322,8 +1325,6 @@ moves_loop: // When in check, search starts here
               }
           }
       }
-      else
-         ss->cutoffCnt = 0;
 
 
       // If the move is worse than some previously searched move, remember it to update its stats later
@@ -1577,12 +1578,11 @@ moves_loop: // When in check, search starts here
           && (*contHist[1])[pos.moved_piece(move)][to_sq(move)] < 0)
           continue;
 
-      // movecount pruning for quiet check evasions
+      // We prune after 2nd quiet check evasion where being 'in check' is implicitly checked through the counter
+      // and being a 'quiet' apart from being a tt move is assumed after an increment because captures are pushed ahead.
       if (   bestValue > VALUE_TB_LOSS_IN_MAX_PLY
-          && quietCheckEvasions > 1
-          && !capture
-          && ss->inCheck)
-          continue;
+          && quietCheckEvasions > 1)
+          break;
 
       quietCheckEvasions += !capture && ss->inCheck;
 
@@ -1846,7 +1846,7 @@ void MainThread::check_time() {
 /// UCI::pv() formats PV information according to the UCI protocol. UCI requires
 /// that all (if any) unsearched PV lines are sent using a previous search score.
 
-string UCI::pv(const Position& pos, Depth depth, Value alpha, Value beta) {
+string UCI::pv(const Position& pos, Depth depth) {
 
   std::stringstream ss;
   TimePoint elapsed = Time.elapsed() + 1;
@@ -1884,8 +1884,8 @@ string UCI::pv(const Position& pos, Depth depth, Value alpha, Value beta) {
       if (Options["UCI_ShowWDL"])
           ss << UCI::wdl(v, pos.game_ply());
 
-      if (!tb && i == pvIdx)
-          ss << (v >= beta ? " lowerbound" : v <= alpha ? " upperbound" : "");
+      if (i == pvIdx && !tb && updated) // tablebase- and previous-scores are exact
+         ss << (rootMoves[i].scoreLowerbound ? " lowerbound" : (rootMoves[i].scoreUpperbound ? " upperbound" : ""));
 
       ss << " nodes "    << nodesSearched
          << " nps "      << nodesSearched * 1000 / elapsed
