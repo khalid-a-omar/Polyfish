@@ -37,6 +37,7 @@
     <ClCompile Include="src\ucioption.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\benchmark.h" />
     <ClInclude Include="src\bitboard.h" />
     <ClInclude Include="src\endgame.h" />
     <ClInclude Include="src\evaluate.h" />

@@ -92,6 +92,7 @@
     <ClInclude Include="src\nnue\layers\simd.h">
       <Filter>nnue\layers</Filter>
     </ClInclude>
+    <ClInclude Include="src\benchmark.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Makefile" />
