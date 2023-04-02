@@ -6,7 +6,7 @@ SETLOCAL EnableExtensions
 
 SET "MSYS_BIN=C:\msys64\usr\bin"
 SET "MINGW_PATH=C:\msys64\mingw64"
-SET "SDE_EXE=C:/SDE/sde-external-9.0.0-2021-11-07-win/sde.exe"
+SET "SDE_EXE=C:/SDE/sde-external-9.14.0-2022-10-25-win/sde.exe"
 SET "_7Z=C:\Program Files\7-Zip\7z.exe"
 
 :Main
@@ -82,7 +82,7 @@ SET "_7Z=C:\Program Files\7-Zip\7z.exe"
 	make.exe profile-build ARCH=%~1 COMP=mingw -j 8 || (PAUSE & EXIT /B 1)
 	strip.exe Polyfish.exe || EXIT /B 1
 	REN Polyfish.exe "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
-	"%_7Z%" a -tzip "%BUILD_DIR%\Polyfish_%DateString%_%~1.zip" "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
+	"%_7Z%" a -tzip "%BUILD_DIR%\Windows_Polyfish_%DateString%_%~1.zip" "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	make.exe clean || (PAUSE & EXIT /B 1)
 	ERASE "Polyfish_%DateString%_%~1.exe" || (PAUSE & EXIT /B 1)
 	POPD

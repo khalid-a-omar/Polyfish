@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Environment
-export SDE_PATH="~/sde-external-9.0.0-2021-11-07-lin/sde"
+export SDE_PATH="~/sde-external-9.14.0-2022-10-25-lin/sde"
 
 #Little setup
 DateString=$(date +'%y%m%d')
@@ -12,12 +12,12 @@ BuildFolder=${RootFolder}/Tools/Build/Linux/${DateString}
 build()
 {
     pushd $SourceFolder
-    make clean                                                                    || { echo clean failed; return 1; }
-    make profile-build ARCH=$1 -j 8                                               || { echo profile-build failed; return 1; }	
-    strip Polyfish                                                                || { echo strip failed; return 1; }
-    mv Polyfish Polyfish_${DateString}_$1                                         || { echo moving/renaming failed; return 1; }
-	zip -r ${BuildFolder}/Polyfish_${DateString}_$1.zip Polyfish_${DateString}_$1 || { echo compressing failed; return 1; }
-	rm Polyfish_${DateString}_$1                                                  || { echo removing failed; return 1; }
+    make clean                                                                          || { echo clean failed; return 1; }
+    make profile-build ARCH=$1 -j 8                                                     || { echo profile-build failed; return 1; }	
+    strip Polyfish                                                                      || { echo strip failed; return 1; }
+    mv Polyfish Polyfish_${DateString}_$1                                               || { echo moving/renaming failed; return 1; }
+	zip -r ${BuildFolder}/Linux_Polyfish_${DateString}_$1.zip Polyfish_${DateString}_$1 || { echo compressing failed; return 1; }
+	rm Polyfish_${DateString}_$1                                                        || { echo removing failed; return 1; }
     make clean
     popd
     return 0
