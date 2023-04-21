@@ -11,7 +11,7 @@
 * [ctgexporter](https://github.com/sshivaji/ctgexporter)
 * [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
 
-### Important: Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
+#### Important: Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
 
 ## Files
 
