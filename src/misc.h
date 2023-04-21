@@ -211,19 +211,19 @@ namespace Utility
 
     std::string format_bytes(uint64_t bytes, int decimals);
 
-    class MemMappedFile
+    class FileMapping
     {
     private:
         uint64_t mapping;
         void* baseAddress;
-        size_t dataLength;
+        size_t dataSize;
 
     public:
-        MemMappedFile() : mapping(0), baseAddress(nullptr), dataLength(0)
+        FileMapping() : mapping(0), baseAddress(nullptr), dataSize(0)
         {
         }
 
-        ~MemMappedFile()
+        ~FileMapping()
         {
             unmap();
         }
@@ -289,7 +289,7 @@ namespace Utility
             //Assign
             mapping = (uint64_t)mmap;
             baseAddress = viewBase;
-            dataLength = ((size_t)sizeHigh << 32) | (size_t)sizeLow;
+            dataSize = ((size_t)sizeHigh << 32) | (size_t)sizeLow;
 #else
             //Open the file
             struct stat statbuf;
@@ -334,14 +334,14 @@ namespace Utility
 
             mapping = statbuf.st_size;
             baseAddress = data;
-            dataLength = statbuf.st_size;
+            dataSize = statbuf.st_size;
 #endif
             return true;
         }
 
         void unmap()
         {
-            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataLength == 0));
+            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataSize == 0));
 
 #ifdef _WIN32
             if(baseAddress)
@@ -355,26 +355,26 @@ namespace Utility
 #endif
             baseAddress = nullptr;
             mapping = 0;
-            dataLength = 0;
+            dataSize = 0;
         }
 
         bool has_data() const
         {
-            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataLength == 0));
+            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataSize == 0));
 
-            return (baseAddress != nullptr && dataLength != 0);
+            return (baseAddress != nullptr && dataSize != 0);
         }
 
-        void* data() const
+        const char* data() const
         {
-            assert(mapping != 0 && baseAddress != nullptr && dataLength != 0);
-            return baseAddress;
+            assert(mapping != 0 && baseAddress != nullptr && dataSize != 0);
+            return (const char *)baseAddress;
         }
 
-        size_t data_length() const
+        size_t data_size() const
         {
-            assert(mapping != 0 && baseAddress != nullptr && dataLength != 0);
-            return dataLength;
+            assert(mapping != 0 && baseAddress != nullptr && dataSize != 0);
+            return dataSize;
         }
     };
 }

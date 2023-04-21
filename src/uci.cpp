@@ -32,7 +32,8 @@
 #include "tt.h"
 #include "uci.h"
 #if defined(POLYFISH)
-#include "polyglot/book.h"
+#include "polyglot/polyglot.h"
+#include "ctg/ctgbook.h"
 #endif
 #include "syzygy/tbprobe.h"
 #include "nnue/evaluate_nnue.h"
@@ -285,6 +286,7 @@ void UCI::loop(int argc, char* argv[]) {
       else if (token == "eval")     trace_eval(pos);
 #if defined(POLYFISH)
       else if (token == "poly")    Polyglot::show_moves(pos);
+      else if (token == "ctg")     CTG::show_moves(pos);
 #endif
       else if (token == "compiler") sync_cout << compiler_info() << sync_endl;
       else if (token == "export_net")

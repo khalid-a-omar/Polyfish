@@ -28,7 +28,8 @@
 #include "tt.h"
 #include "uci.h"
 #if defined(POLYFISH)
-#include "polyglot/book.h"
+#include "polyglot/polyglot.h"
+#include "ctg/ctgbook.h"
 #endif
 #include "syzygy/tbprobe.h"
 
@@ -48,6 +49,8 @@ static void on_threads(const Option& o) { Threads.set(size_t(o)); }
 #if defined(POLYFISH)
 static void on_polyglot_book1(const Option& o) { Polyglot::on_book(0, (string)o); }
 static void on_polyglot_book2(const Option& o) { Polyglot::on_book(1, (string)o); }
+static void on_ctg_book1(const Option& o) { CTG::on_book(0, (string)o); }
+static void on_ctg_book2(const Option& o) { CTG::on_book(1, (string)o); }
 #endif
 static void on_tb_path(const Option& o) { Tablebases::init(o); }
 static void on_use_NNUE(const Option&) { Eval::NNUE::init(); }
@@ -83,12 +86,18 @@ void init(OptionsMap& o) {
   o["UCI_Elo"]               << Option(1320, 1320, 3190);
   o["UCI_ShowWDL"]           << Option(false);
 #if defined(POLYFISH)
-  o["Book 1 File"]           << Option("<empty>", on_polyglot_book1);
-  o["Book 1 Width"]          << Option(1, 1, 20);
-  o["Book 1 Depth"]          << Option(255, 1, 255);
-  o["Book 2 File"]           << Option("<empty>", on_polyglot_book2);
-  o["Book 2 Width"]          << Option(1, 1, 20);
-  o["Book 2 Depth"]          << Option(255, 1, 255);
+  o["BIN Book 1 File"]       << Option("<empty>", on_polyglot_book1);
+  o["BIN Book 1 Width"]      << Option(1, 1, 20);
+  o["BIN Book 1 Depth"]      << Option(255, 1, 255);
+  o["BIN Book 2 File"]       << Option("<empty>", on_polyglot_book2);
+  o["BIN Book 2 Width"]      << Option(1, 1, 20);
+  o["BIN Book 2 Depth"]      << Option(255, 1, 255);
+  o["CTG Book 1 File"]       << Option("<empty>", on_ctg_book1);
+  o["CTG Book 1 Width"]      << Option(1, 1, 20);
+  o["CTG Book 1 Depth"]      << Option(255, 1, 255);
+  o["CTG Book 2 File"]       << Option("<empty>", on_ctg_book2);
+  o["CTG Book 2 Width"]      << Option(1, 1, 20);
+  o["CTG Book 2 Depth"]      << Option(255, 1, 255);
 #endif
   o["SyzygyPath"]            << Option("<empty>", on_tb_path);
   o["SyzygyProbeDepth"]      << Option(1, 1, 100);

@@ -59,11 +59,11 @@ endif
 SRCS = benchmark.cpp bitbase.cpp bitboard.cpp endgame.cpp evaluate.cpp main.cpp \
 	material.cpp misc.cpp movegen.cpp movepick.cpp pawns.cpp position.cpp psqt.cpp \
 	search.cpp thread.cpp timeman.cpp tt.cpp uci.cpp ucioption.cpp tune.cpp syzygy/tbprobe.cpp \
-	nnue/evaluate_nnue.cpp nnue/features/half_ka_v2_hm.cpp polyglot/book.cpp
+	nnue/evaluate_nnue.cpp nnue/features/half_ka_v2_hm.cpp polyglot/polyglot.cpp ctg/ctgbook.cpp
 
 OBJS = $(notdir $(SRCS:.cpp=.o))
 
-VPATH = syzygy:nnue:nnue/features:polyglot
+VPATH = syzygy:nnue:nnue/features:polyglot:ctg
 
 ### ==========================================================================
 ### Section 2. High-level Configuration
@@ -908,12 +908,12 @@ net:
 
 # clean binaries and objects
 objclean:
-	@rm -f Polyfish Polyfish.exe *.o ./syzygy/*.o ./nnue/*.o ./nnue/features/*.o ./polyglot/*.o
+	@rm -f Polyfish Polyfish.exe *.o ./syzygy/*.o ./nnue/*.o ./nnue/features/*.o ./polyglot/*.o ./ctg/*.o
 
 # clean auxiliary profiling files
 profileclean:
 	@rm -rf profdir
-	@rm -f bench.txt *.gcda *.gcno ./syzygy/*.gcda ./nnue/*.gcda ./nnue/features/*.gcda *.s ./polyglot/*.gcda *.s 
+	@rm -f bench.txt *.gcda *.gcno ./syzygy/*.gcda ./nnue/*.gcda ./nnue/features/*.gcda ./polyglot/*.gcda ./ctg/*.gcda *.s 
 	@rm -f Polyfish.profdata *.profraw
 	@rm -f Polyfish.*args*
 	@rm -f Polyfish.*lt*

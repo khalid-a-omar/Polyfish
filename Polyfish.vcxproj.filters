@@ -30,7 +30,10 @@
     <ClCompile Include="src\syzygy\tbprobe.cpp">
       <Filter>syzygy</Filter>
     </ClCompile>
-    <ClCompile Include="src\polyglot\book.cpp">
+    <ClCompile Include="src\ctg\ctgbook.cpp">
+      <Filter>ctg</Filter>
+    </ClCompile>
+    <ClCompile Include="src\polyglot\polyglot.cpp">
       <Filter>polyglot</Filter>
     </ClCompile>
   </ItemGroup>
@@ -83,9 +86,6 @@
     <ClInclude Include="src\incbin\incbin.h">
       <Filter>incbin</Filter>
     </ClInclude>
-    <ClInclude Include="src\polyglot\book.h">
-      <Filter>polyglot</Filter>
-    </ClInclude>
     <ClInclude Include="src\nnue\layers\sqr_clipped_relu.h">
       <Filter>nnue\layers</Filter>
     </ClInclude>
@@ -93,6 +93,12 @@
       <Filter>nnue\layers</Filter>
     </ClInclude>
     <ClInclude Include="src\benchmark.h" />
+    <ClInclude Include="src\ctg\ctgbook.h">
+      <Filter>ctg</Filter>
+    </ClInclude>
+    <ClInclude Include="src\polyglot\polyglot.h">
+      <Filter>polyglot</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Makefile" />
@@ -115,6 +121,9 @@
     </Filter>
     <Filter Include="polyglot">
       <UniqueIdentifier>{e95b96f9-2e67-4bd8-8ed1-58978673d04c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ctg">
+      <UniqueIdentifier>{2b21ec9c-7185-4af6-87a4-0ac0e5f558a6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
