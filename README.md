@@ -1,9 +1,15 @@
 
 
 ## Overview
-**Polyfish** is a UCI chess engine based on [Stockfish](https://github.com/official-stockfish). It is identical to Stockfish with the added capability of handling [Polyglot](https://web.archive.org/web/20191216195456/http://hardy.uhasselt.be/Toga/book_format.html) books
+**Polyfish** is a UCI chess engine based on [Stockfish](https://github.com/official-stockfish). It is identical to Stockfish with the added capability of handling [Polyglot](https://web.archive.org/web/20191216195456/http://hardy.uhasselt.be/Toga/book_format.html) books and [CTG](https://www.chessprogramming.org/CTG) books
 
 **Polyfish** supports two polyglot BIN books at the same time. The second book is only probed if the first book has no moves for the given position. The engine starts searching only if no move is found in either the first book or the second book.
+
+**Polyfish** also supports CTG book format, which is **C**hessBase Opening **T**ree of **G**ames, used natively by ChessBase product family. The code and logic to read CTG in **Polyfish** is based on the following resources:
+* [remoteglot](https://github.com/madnight/remoteglot)
+* [jja](https://git.sr.ht/~alip/jja)
+* [ctgexporter](https://github.com/sshivaji/ctgexporter)
+* [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
 
 ## Files
 
@@ -45,10 +51,10 @@ Polyfish also supports the following UCI options
 ## UCI commands
 Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
 
-Polyfish also supports the following UCI command
+Polyfish also supports the following UCI commands
 
   * #### poly
-    This command causes the engine to print available book moves in the loaded books
+    This command causes the engine to print available Polyglot (BIN) book moves in the loaded books
 	```
 	position startpos
 	poly
@@ -102,4 +108,57 @@ Polyfish also supports the following UCI command
 	19: b1a3 , count: 1
 	20: f2f3 , count: 1
 	```
+* #### ctg
+    This command causes the engine to print available CTG book moves in the loaded books
+	```
+	setoption name CTG Book 1 File value Full-Path-To-CTG-File.ctg
+	info string CTG Book [Full-Path-To-CTG-File.ctg] opened successfully
+	position startpos
+	ctg
 
+	 +---+---+---+---+---+---+---+---+
+	 | r | n | b | q | k | b | n | r | 8
+	 +---+---+---+---+---+---+---+---+
+	 | p | p | p | p | p | p | p | p | 7
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 6
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 5
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 4
+	 +---+---+---+---+---+---+---+---+
+	 |   |   |   |   |   |   |   |   | 3
+	 +---+---+---+---+---+---+---+---+
+	 | P | P | P | P | P | P | P | P | 2
+	 +---+---+---+---+---+---+---+---+
+	 | R | N | B | Q | K | B | N | R | 1
+	 +---+---+---+---+---+---+---+---+
+	   a   b   c   d   e   f   g   h
+
+	Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+	Key: 8F8F01D4562F59FB
+	Checkers:
+
+	info string CTG book 1: BookName.ctg
+	MOVE         WIN        DRAW        LOSS      WEIGHT
+	e2e4       60307       70564       43371         100
+	d2d4       52092       68959       35850          62
+	c2c4       10857       13165        6751          46
+	g1f3       13616       18556        9581          35
+	b2b3         667         426         513          34
+	g2g3         760         837         572          33
+	f2f4         277         210         326          31
+	d2d3          29          20          29        -100
+	e2e3          74          46          79        -100
+	c2c3          18          13          14        -100
+	a2a3          52          24          51        -100
+	h2h3           4           1           2        -100
+	b1c3          72          64          85        -100
+	b2b4          59          38          54        -100
+	a2a4           2           1           2        -100
+	g2g4          19          10          17        -100
+	g1h3           9           0           1        -100
+	h2h4          10           0           5        -100
+	b1a3           3           0           1        -100
+	f2f3           4           2           2        -100
+	```
