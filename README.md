@@ -32,23 +32,41 @@ This distribution of Polyfish consists of the following files:
 Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
 
 Polyfish also supports the following UCI options
- * #### Book 1 File
-    The name of the polyglot book to be used as the first book. To disable this book, use: ```<empty>```
+  * #### BIN Book 1 File
+    The name of the polyglot (BIN) book to be used as the first book. To disable this book, use: ```<empty>```
 
-  * #### Book 1 Width
+  * #### BIN Book 1 Width
     The number of moves to consider from the book for the same position. To play best book move, set this option to ```1```. If a value ```n``` (greater than ```1```) is configured, the engine will pick **randomly** one of the top ```n``` moves available in the book for the given position
 
-  * #### Book 1 Depth
+  * #### BIN Book 1 Depth
     The maximum number of moves to play from the book
     
- * #### Book 2 File
-    Same explaination as **Book 1 File**, but for the second polyglot book
+  * #### BIN Book 2 File
+    Same explaination as **BIN Book 1 File**, but for the second polyglot book
 
-  * #### Book 2 Width
-    Same explaination as **Book 1 Width**, but for the second polyglot book
+  * #### BIN Book 2 Width
+    Same explaination as **BIN Book 1 Width**, but for the second polyglot book
 
-  * #### Book 2 Depth
-    Same explaination as **Book 1 Depth**, but for the second polyglot book
+  * #### BIN Book 2 Depth
+    Same explaination as **BIN Book 1 Depth**, but for the second polyglot book
+	
+  * #### CTG Book 1 File
+    The name of the CTG book to be used as the first book. To disable this book, use: ```<empty>```
+
+  * #### CTG Book 1 Width
+    The number of moves to consider from the book for the same position. To play best book move, set this option to ```1```. If a value ```n``` (greater than ```1```) is configured, the engine will pick **randomly** one of the top ```n``` moves available in the book for the given position
+
+  * #### CTG Book 1 Depth
+    The maximum number of moves to play from the book
+    
+  * #### CTG Book 2 File
+    Same explaination as **CTG Book 1 File**, but for the second polyglot book
+
+  * #### CTG Book 2 Width
+    Same explaination as **CTG Book 1 Width**, but for the second polyglot book
+
+  * #### CTG Book 2 Depth
+    Same explaination as **CTG Book 1 Depth**, but for the second polyglot book	
 
 ## UCI commands
 Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
