@@ -165,7 +165,7 @@ Polyfish also supports the following UCI commands
 	f2f3           4           2           2        -100
 	```
 ## Note about CTG books:
-CTG book format specification is not available to the public from Chessbase. The code that reads and parses CTG Books is based on the reverse engineered book specification published on [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319) as well as the other resources mentioned earlier.
+CTG book format specification is not available to the public from Chessbase. The code that reads and parses CTG books is based on the reverse engineered book specification published on [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319) as well as the other resources mentioned earlier.
 
 The reverse engineered specs are good enough to proble the book for moves, but it does not provide the same functionality as Chessbase own products, for example, the logic that determines Green/Red moves is known to be only 80% - 90% accurate. Also, some move annotations and engine recommendations can be read while others are unknown.
 
