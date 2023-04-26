@@ -11,7 +11,7 @@
 * [ctgexporter](https://github.com/sshivaji/ctgexporter)
 * [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
 
-#### Important: Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
+#### Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
 
 ## Files
 
@@ -32,49 +32,34 @@ This distribution of Polyfish consists of the following files:
 Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
 
 Polyfish also supports the following UCI options
-  * #### BIN Book 1 File
-    The name of the polyglot (BIN) book to be used as the first book. To disable this book, use: ```<empty>```
+  * #### CTG/BIN Book 1 File
+    The file name of the first book file which could be a polyglot (BIN) or Chessbase (CTG) book. To disable this book, use: ```<empty>```
+    If the book (CTG or BIN) is in a different directory than the engine executable, then configure the full path of the book file, example:
+    ```C:\Path\To\My\Book.ctg``` or ```/home/username/path/to/book/bin```
 
-  * #### BIN Book 1 Width
+  * #### Book 1 Width
     The number of moves to consider from the book for the same position. To play best book move, set this option to ```1```. If a value ```n``` (greater than ```1```) is configured, the engine will pick **randomly** one of the top ```n``` moves available in the book for the given position
 
-  * #### BIN Book 1 Depth
+  * #### Book 1 Depth
     The maximum number of moves to play from the book
     
-  * #### BIN Book 2 File
-    Same explaination as **BIN Book 1 File**, but for the second polyglot book
+  * #### CTG/BIN Book 2 File
+    Same explaination as **CTG/BIN Book 1 File**, but for the second book
 
-  * #### BIN Book 2 Width
+  * #### Book 2 Width
     Same explaination as **BIN Book 1 Width**, but for the second polyglot book
 
-  * #### BIN Book 2 Depth
+  * #### Book 2 Depth
     Same explaination as **BIN Book 1 Depth**, but for the second polyglot book
-	
-  * #### CTG Book 1 File
-    The name of the CTG book to be used as the first book. To disable this book, use: ```<empty>```
 
-  * #### CTG Book 1 Width
-    The number of moves to consider from the book for the same position. To play best book move, set this option to ```1```. If a value ```n``` (greater than ```1```) is configured, the engine will pick **randomly** one of the top ```n``` moves available in the book for the given position
-
-  * #### CTG Book 1 Depth
-    The maximum number of moves to play from the book
-    
-  * #### CTG Book 2 File
-    Same explaination as **CTG Book 1 File**, but for the second polyglot book
-
-  * #### CTG Book 2 Width
-    Same explaination as **CTG Book 1 Width**, but for the second polyglot book
-
-  * #### CTG Book 2 Depth
-    Same explaination as **CTG Book 1 Depth**, but for the second polyglot book	
 
 ## UCI commands
 Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
 
 Polyfish also supports the following UCI commands
 
-  * #### poly
-    This command causes the engine to print available Polyglot (BIN) book moves in the loaded books
+  * #### book
+    This command causes the engine to show available moves and associated information from the currently configured books
 	```
 	position startpos
 	poly
@@ -128,60 +113,7 @@ Polyfish also supports the following UCI commands
 	19: b1a3 , count: 1
 	20: f2f3 , count: 1
 	```
-* #### ctg
-    This command causes the engine to print available CTG book moves in the loaded books
-	```
-	setoption name CTG Book 1 File value Full-Path-To-CTG-File.ctg
-	info string CTG Book [Full-Path-To-CTG-File.ctg] opened successfully
-	position startpos
-	ctg
 
-	 +---+---+---+---+---+---+---+---+
-	 | r | n | b | q | k | b | n | r | 8
-	 +---+---+---+---+---+---+---+---+
-	 | p | p | p | p | p | p | p | p | 7
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 6
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 5
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 4
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 3
-	 +---+---+---+---+---+---+---+---+
-	 | P | P | P | P | P | P | P | P | 2
-	 +---+---+---+---+---+---+---+---+
-	 | R | N | B | Q | K | B | N | R | 1
-	 +---+---+---+---+---+---+---+---+
-	   a   b   c   d   e   f   g   h
-
-	Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	Key: 8F8F01D4562F59FB
-	Checkers:
-
-	info string CTG book 1: BookName.ctg
-	MOVE         WIN        DRAW        LOSS      WEIGHT
-	e2e4       60307       70564       43371         100
-	d2d4       52092       68959       35850          62
-	c2c4       10857       13165        6751          46
-	g1f3       13616       18556        9581          35
-	b2b3         667         426         513          34
-	g2g3         760         837         572          33
-	f2f4         277         210         326          31
-	d2d3          29          20          29        -100
-	e2e3          74          46          79        -100
-	c2c3          18          13          14        -100
-	a2a3          52          24          51        -100
-	h2h3           4           1           2        -100
-	b1c3          72          64          85        -100
-	b2b4          59          38          54        -100
-	a2a4           2           1           2        -100
-	g2g4          19          10          17        -100
-	g1h3           9           0           1        -100
-	h2h4          10           0           5        -100
-	b1a3           3           0           1        -100
-	f2f3           4           2           2        -100
-	```
 ## Note about CTG books:
 CTG book format specification is not available to the public from Chessbase. The code that reads and parses CTG books is based on the reverse engineered book specification published on [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319) as well as the other resources mentioned earlier.
 
