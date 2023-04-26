@@ -14,7 +14,9 @@
     <ClCompile Include="src\benchmark.cpp" />
     <ClCompile Include="src\bitbase.cpp" />
     <ClCompile Include="src\bitboard.cpp" />
-    <ClCompile Include="src\ctg\ctgbook.cpp" />
+    <ClCompile Include="src\book\book.cpp" />
+    <ClCompile Include="src\book\ctg\ctg.cpp" />
+    <ClCompile Include="src\book\polyglot\polyglot.cpp" />
     <ClCompile Include="src\endgame.cpp" />
     <ClCompile Include="src\evaluate.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -25,7 +27,6 @@
     <ClCompile Include="src\nnue\evaluate_nnue.cpp" />
     <ClCompile Include="src\nnue\features\half_ka_v2_hm.cpp" />
     <ClCompile Include="src\pawns.cpp" />
-    <ClCompile Include="src\polyglot\polyglot.cpp" />
     <ClCompile Include="src\position.cpp" />
     <ClCompile Include="src\psqt.cpp" />
     <ClCompile Include="src\search.cpp" />
@@ -40,7 +41,9 @@
   <ItemGroup>
     <ClInclude Include="src\benchmark.h" />
     <ClInclude Include="src\bitboard.h" />
-    <ClInclude Include="src\ctg\ctgbook.h" />
+    <ClInclude Include="src\book\book.h" />
+    <ClInclude Include="src\book\ctg\ctg.h" />
+    <ClInclude Include="src\book\polyglot\polyglot.h" />
     <ClInclude Include="src\endgame.h" />
     <ClInclude Include="src\evaluate.h" />
     <ClInclude Include="src\incbin\incbin.h" />
@@ -59,7 +62,6 @@
     <ClInclude Include="src\nnue\nnue_common.h" />
     <ClInclude Include="src\nnue\nnue_feature_transformer.h" />
     <ClInclude Include="src\pawns.h" />
-    <ClInclude Include="src\polyglot\polyglot.h" />
     <ClInclude Include="src\position.h" />
     <ClInclude Include="src\psqt.h" />
     <ClInclude Include="src\search.h" />

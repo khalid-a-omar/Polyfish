@@ -4,9 +4,9 @@
 #include <sstream>
 #include <iomanip>
 #include <random>
-
-#include "../thread.h"
-#include "../uci.h"
+#include <map>
+#include "../../movegen.h"
+#include "../../uci.h"
 #include "polyglot.h"
 
 using namespace std;
@@ -346,38 +346,17 @@ namespace
         return move;
     }
 
-    template <typename IntType>
-    void read_big_endian(IntType& result, size_t& pos, unsigned char* buffer, size_t bufferLen)
-    {
-        assert(buffer && bufferLen);
-        assert(pos + sizeof(IntType) <= bufferLen);
-        (void)bufferLen; //Avoid warning in release mode
-
-        typename std::make_unsigned<IntType>::type v = 0;
-        for (std::size_t i = 0; i < sizeof(IntType); ++i)
-            v = (v << 8) | buffer[pos + i];
-
-        //Offset the current position pointer
-        pos += sizeof(IntType);
-
-        //Copy to result variable
-        std::memcpy(&result, &v, sizeof(IntType));
-    }
-
     void read_poly_entry(PolyglotEntry& e, size_t& pos, unsigned char* buffer, size_t bufferLen)
     {
         assert(buffer && bufferLen);
         assert(pos + sizeof(PolyglotEntry) <= bufferLen);
 
-        read_big_endian<uint64_t>(e.key, pos, buffer, bufferLen);
-        read_big_endian<uint16_t>(e.move, pos, buffer, bufferLen);
-        read_big_endian<uint16_t>(e.count, pos, buffer, bufferLen);
-        read_big_endian<int32_t>(e.learn, pos, buffer, bufferLen);
+        e.key   = Book::BookUtil::read_big_endian<uint64_t>(buffer, pos, bufferLen);
+        e.move  = Book::BookUtil::read_big_endian<uint16_t>(buffer, pos, bufferLen);
+        e.count = Book::BookUtil::read_big_endian<uint16_t>(buffer, pos, bufferLen);
+        e.learn = Book::BookUtil::read_big_endian<int32_t >(buffer, pos, bufferLen);
     }
-} // namespace
 
-namespace
-{
     struct PolyglotBookMove
     {
         Move move;
@@ -387,344 +366,254 @@ namespace
         PolyglotBookMove(const PolyglotEntry& e, Move m) { memcpy(&entry, &e, sizeof(PolyglotEntry)); move = m; }
     };
 
-    auto randomEngine = std::default_random_engine(now());
+    auto randomEngine = default_random_engine(now());
+} // namespace
 
-    class PolyglotBook
+namespace Polyfish::Book::Polyglot
+{
+    unsigned char* PolyglotBook::data() const
     {
-    private:
-        string filename;
-        unsigned char* bookData;
-        size_t bookDataLength;
+        return bookData;
+    }
 
-    public:
-        unsigned char* data() const
+    size_t PolyglotBook::data_size() const
+    {
+        return bookDataLength;
+    }
+
+    size_t PolyglotBook::find_first_pos(Key key) const
+    {
+        assert(has_data());
+
+        size_t low = 0, mid, high = total_entries() - 1;
+        PolyglotEntry e;
+
+        assert(low <= high);
+
+        size_t curPos;
+        while (low < high)
         {
-            return bookData;
+            mid = (low + high) / 2;
+
+            assert(mid >= low && mid < high);
+
+            curPos = mid * sizeof(PolyglotEntry);
+            read_poly_entry(e, curPos, bookData, bookDataLength);
+
+            if (key <= e.key)
+                high = mid;
+            else
+                low = mid + 1;
         }
 
-        size_t data_size() const
+        assert(low == high);
+
+        return low;
+    }
+
+    bool PolyglotBook::has_data() const
+    {
+        return bookData && bookDataLength;
+    }
+
+    size_t PolyglotBook::total_entries() const
+    {
+        if (!has_data())
+            return 0;
+
+        return bookDataLength / sizeof(PolyglotEntry);
+    }
+
+    void PolyglotBook::get_moves(const Position& pos, vector<PolyglotBookMove>& bookMoves) const
+    {
+        //Clear
+        bookMoves.clear();
+
+        //Find moves
+        Key key = Polyglot_key(pos);
+        PolyglotEntry e;
+
+        size_t curPos = find_first_pos(key) * sizeof(PolyglotEntry);
+        while (true)
         {
-            return bookDataLength;
-        }
+            //Read a new entry
+            read_poly_entry(e, curPos, bookData, bookDataLength);
 
-        size_t find_first_pos(Key key) const
-        {
-            assert(has_data());
+            //Check if this is the entry we are looking for
+            if (e.key != key)
+                break;
 
-            size_t low = 0, mid, high = total_entries() - 1;
-            PolyglotEntry e;
+            //Skip moves with zero count!
+            if (e.count == 0)
+                continue;
 
-            assert(low <= high);
-
-            size_t curPos;
-            while (low < high)
+            Move move = make_move(e);
+            for (const auto& m : MoveList<LEGAL>(pos))
             {
-                mid = (low + high) / 2;
-
-                assert(mid >= low && mid < high);
-
-                curPos = mid * sizeof(PolyglotEntry);
-                read_poly_entry(e, curPos, bookData, bookDataLength);
-
-                if (key <= e.key)
-                    high = mid;
-                else
-                    low = mid + 1;
-            }
-
-            assert(low == high);
-
-            return low;
-        }
-
-        bool has_data() const
-        {
-            return bookData && bookDataLength;
-        }
-
-        size_t total_entries() const
-        {
-            if (!has_data())
-                return 0;
-
-            return bookDataLength / sizeof(PolyglotEntry);
-        }
-
-        size_t find_move(const Position& pos, Move move, PolyglotEntry& entry) const
-        {
-            if (!has_data())
-                return (size_t)-1;
-
-            Key key = Polyglot_key(pos);
-            size_t curPos = find_first_pos(key) * sizeof(PolyglotEntry);
-            size_t prevPos = curPos;
-            while (read_poly_entry(entry, curPos, bookData, bookDataLength), entry.key == key)
-            {
-                Move m = make_move(entry);
-                if (m == (move ^ type_of(move)))
-                    return prevPos;
-
-                prevPos = curPos;
-            }
-
-            return (size_t)-1;
-        }
-
-        void get_moves(const Position& pos, vector<PolyglotBookMove>& bookMoves) const
-        {
-            //Clear
-            bookMoves.clear();
-
-            //Find moves
-            Key key = Polyglot_key(pos);
-            PolyglotEntry e;
-
-            size_t curPos = find_first_pos(key) * sizeof(PolyglotEntry);
-            while (true)
-            {
-                //Read a new entry
-                read_poly_entry(e, curPos, bookData, bookDataLength);
-
-                //Check if this is the entry we are looking for
-                if (e.key != key)
-                    break;
-
-                //Skip moves with zero count!
-                if (e.count == 0)
-                    continue;
-
-                Move move = make_move(e);
-                for (const auto& m : MoveList<LEGAL>(pos))
+                if (move == (Move(m) ^ type_of(m)))
                 {
-                    if (move == (Move(m) ^ type_of(m)))
-                    {
-                        bookMoves.push_back(PolyglotBookMove(e, m));
-                    }
+                    bookMoves.push_back(PolyglotBookMove(e, m));
                 }
             }
         }
+    }
 
-    public:
-        PolyglotBook() : filename(), bookData(nullptr), bookDataLength(0)
+    PolyglotBook::PolyglotBook() : filename(), bookData(nullptr), bookDataLength(0)
+    {
+    }
+
+    PolyglotBook::~PolyglotBook()
+    {
+        close();
+    }
+
+    string PolyglotBook::type() const
+    {
+        return "BIN";
+    }
+
+    void PolyglotBook::close()
+    {
+        if (bookData)
+            free(bookData);
+
+        bookData = nullptr;
+        bookDataLength = 0;
+        filename.clear();
+    }
+
+    bool PolyglotBook::open(const string& f)
+    {
+        //If same file and same size -> nothing to do
+        if (Utility::is_same_file(f, filename) && Utility::get_file_size(f) == bookDataLength)
+            return true;
+
+        //Close current file
+        close();
+
+        //If no file name is given -> nothing to do
+        if (Utility::is_empty_filename(f))
+            return true;
+
+        Utility::FileMapping fm;
+        if (!fm.map(Utility::map_path(f), false))
         {
+            sync_cout << "info string Could not open book file: " << f << sync_endl;
+            return false;
         }
 
-        ~PolyglotBook()
+        void* inData = malloc(fm.data_size());
+        if (!inData)
         {
-            close();
+            sync_cout << "info string Could not allocate " << Utility::format_bytes(fm.data_size(), 2) << " of memory for reading book file: " << f << sync_endl;
+            return false;
         }
 
-        void close()
-        {
-            if (bookData)
-                free(bookData);
+        //Read
+        memcpy(inData, fm.data(), fm.data_size());
 
-            bookData = nullptr;
-            bookDataLength = 0;
-            filename.clear();
+        //Assign variables and read data from file
+        bookDataLength = fm.data_size();
+        bookData = (unsigned char*)inData;
+        filename = f;
+
+        //Close the book file
+        fm.unmap();
+
+        sync_cout << "info string BIN Book [" << f << "] opened successfully" << sync_endl;
+
+        return has_data();
+    }
+
+    Move PolyglotBook::probe(const Position& pos, size_t width) const
+    {
+        if (!has_data())
+            return MOVE_NONE;
+
+        vector<PolyglotBookMove> bookMoves;
+        get_moves(pos, bookMoves);
+
+        if (!bookMoves.size())
+            return MOVE_NONE;
+
+#if 1
+        //Remove any move with REALLY low weight compared to the total weight of all moves
+        //Such moves appear with probability 0% in SCID
+
+        //Calculate total weight for all moves
+        uint64_t totalWeight = 0;
+        for (const PolyglotBookMove& mv : bookMoves)
+            totalWeight += mv.entry.count;
+
+        //Remove moves with weight percentage less than 0.5%
+        bookMoves.erase(
+            remove_if(
+                bookMoves.begin(),
+                bookMoves.end(),
+                [&totalWeight](const PolyglotBookMove& x)
+                {
+                    return (uint64_t)x.entry.count * 200 < totalWeight;
+                }),
+            bookMoves.end());
+#endif
+
+        //Sort moves accorging to their weights
+        stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& mv1, const PolyglotBookMove& mv2) { return mv1.entry.count > mv2.entry.count; });
+
+        //Only keep the top 'width' moves in the list
+        while (bookMoves.size() > width)
+            bookMoves.pop_back();
+
+        size_t selectedMoveIndex = 0;
+        if (bookMoves.size() > 1)
+        {
+            //Although not needed, let's shuffle candidate book moves just in case the random engine is more biased towards the middle
+            shuffle(bookMoves.begin(), bookMoves.end(), randomEngine);
+
+            //Return a random move
+            selectedMoveIndex = (randomEngine() - randomEngine.min()) % bookMoves.size();
         }
 
-        bool open(const string f)
+        //Although not needed, let's shuffle candidate book moves just in case the random engine is more biased towards the middle
+        shuffle(bookMoves.begin(), bookMoves.end(), randomEngine);
+
+        //Return a random move
+        return bookMoves[selectedMoveIndex].move;
+    }
+
+    void PolyglotBook::show_moves(const Position& pos) const
+    {
+        stringstream ss;
+
+        if (!has_data())
         {
-            //If same file and same size -> nothing to do
-            if (Utility::is_same_file(f, filename) && Utility::get_file_size(f) == bookDataLength)
-                return true;
-
-            //Close current file
-            close();
-
-            //If no file name is given -> nothing to do
-            if (Utility::is_empty_filename(f))
-                return true;
-
-            Utility::FileMapping fm;
-            if (!fm.map(Utility::map_path(f), false))
-            {
-                sync_cout << "info string Could not open book file: " << f << sync_endl;
-                return false;
-            }
-
-            void *inData = malloc(fm.data_size());
-            if (!inData)
-            {
-                sync_cout << "info string Could not allocate " << Utility::format_bytes(fm.data_size(), 2) << " of memory for reading book file: " << f << sync_endl;
-                return false;
-            }
-            
-            //Read
-            memcpy(inData, fm.data(), fm.data_size());
-
-            //Assign variables and read data from file
-            bookDataLength = fm.data_size();
-            bookData = (unsigned char *)inData;
-            filename = f;
-
-            //Close the book file
-            fm.unmap();
-
-            sync_cout << "info string Book file opened successfully: " << f << sync_endl;
-
-            return has_data();
+            ss << "No book loaded";
         }
-
-        Move probe(const Position& pos, size_t width) const
+        else
         {
-            if (!has_data())
-                return MOVE_NONE;
-
             vector<PolyglotBookMove> bookMoves;
             get_moves(pos, bookMoves);
 
-            if (!bookMoves.size())
-                return MOVE_NONE;
-
-#if 1
-            //Remove any move with REALLY low weight compared to the total weight of all moves
-            //Such moves appear with probability 0% in SCID
-
-            //Calculate total weight for all moves
-            uint64_t totalWeight = 0;
-            for (const PolyglotBookMove& mv : bookMoves)
-                totalWeight += mv.entry.count;
-
-            //Remove moves with weight percentage less than 0.5%
-            bookMoves.erase(
-                remove_if(
-                    bookMoves.begin(),
-                    bookMoves.end(),
-                    [&totalWeight](const PolyglotBookMove& x)
-                    {
-                        return (uint64_t)x.entry.count * 200 < totalWeight;
-                    }),
-                bookMoves.end());
-#endif
-
-            std::vector<uint32_t> weights;
-            std::map<uint32_t, std::vector<PolyglotBookMove>> weightsMap;
-
-            //Assign moves to weights vector/map
-            for (const PolyglotBookMove& mv : bookMoves)
+            if (bookMoves.size() == 0)
             {
-                uint32_t w = mv.entry.count;
-
-                if (std::find(weights.begin(), weights.end(), w) == weights.end())
-                    weights.push_back(w);
-
-                weightsMap[w].push_back(mv);
-            }
-
-            //Sort weights in descending order in order to pick candidate book moves for the best weights
-            std::stable_sort(weights.begin(), weights.end(), [](const int32_t& w1, const int32_t& w2) { return w1 > w2; });
-
-            //Find all candidate book moves
-            //NOTE: The size of the 'candidateBookMoves' vector is actually the effective width that we will apply
-            //NOTE  Effective width is: Total number of moves having the top X weights. This number will be at least equal to 'width' but possibly higher
-            //      It will be higher if all/some moves share the same weight. This scenario is possible when using the 'uniform' command line switch with Polyglot.exe to create the book
-            vector<PolyglotBookMove> candidateBookMoves;
-            for (const uint32_t& w : weights)
-            {
-                if (candidateBookMoves.size() < width)
-                {
-                    //Add all moves with this weight (utilizing the weights map)
-                    for (const PolyglotBookMove& mv : weightsMap[w])
-                        candidateBookMoves.push_back(mv);
-
-                    //Do we have enough moves yet?
-                    if (candidateBookMoves.size() >= width)
-                        break;
-                }
-            }
-
-            //We should at least have one move
-            assert(candidateBookMoves.size() >= 1);
-
-#if 1
-            //Although not needed, let's shuffle candidate book moves just in case the random engine is more biased towards the middle
-            std::shuffle(candidateBookMoves.begin(), candidateBookMoves.end(), randomEngine);
-#endif
-
-            //Return a random move
-            return candidateBookMoves[(randomEngine() - randomEngine.min()) % candidateBookMoves.size()].move;
-        }
-
-        void show_moves(const Position& pos)
-        {
-            stringstream ss;
-
-            if (!has_data())
-            {
-                ss << "No book loaded";
+                ss << "No moves found for this position";
             }
             else
             {
-                vector<PolyglotBookMove> bookMoves;
-                get_moves(pos, bookMoves);
+                stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
 
-                if (bookMoves.size() == 0)
+                for (size_t i = 0; i < bookMoves.size(); ++i)
                 {
-                    ss << "No moves found for this position";
-                }
-                else
-                {
-                    stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
-
-                    for (size_t i = 0; i < bookMoves.size(); ++i)
-                    {
-                        ss
-                            << setw(2) << setfill(' ') << left << (i + 1) << ": "
-                            << setw(5) << setfill(' ') << left << UCI::move(bookMoves[i].move, pos.is_chess960())
-                            << ", count: " << setw(4) << setfill(' ') << left << bookMoves[i].entry.count
-                            << endl;
-                    }
+                    ss
+                        << setw(2) << setfill(' ') << left << (i + 1) << ": "
+                        << setw(5) << setfill(' ') << left << UCI::move(bookMoves[i].move, pos.is_chess960())
+                        << ", count: " << setw(4) << setfill(' ') << left << bookMoves[i].entry.count
+                        << endl;
                 }
             }
-
-            cout << ss.str() << endl;
-        }
-    };
-}
-
-namespace Polyglot
-{
-    PolyglotBook Books[2];
-
-    void on_book(int index, const string filename)
-    {
-        Books[index].open(filename);
-    }
-
-    Move probe(const Position& pos)
-    {
-        Move bookMove = MOVE_NONE;
-        int moveNumber = 1 + pos.game_ply() / 2;
-
-        if ((int)Options["BIN Book 1 Depth"] >= moveNumber)
-            bookMove = Books[0].probe(pos, (size_t)(int)Options["BIN Book 1 Width"]);
-
-        if (bookMove == MOVE_NONE)
-        {
-            if ((int)Options["BIN Book 2 Depth"] >= moveNumber)
-                bookMove = Books[1].probe(pos, (size_t)(int)Options["BIN Book 2 Width"]);
         }
 
-        return bookMove;
-    }
-
-    void init()
-    {
-        on_book(0, (string)Options["BIN Book 1 File"]);
-        on_book(1, (string)Options["BIN Book 2 File"]);
-    }
-
-    void show_moves(const Position& pos)
-    {
-        cout << pos << endl << endl;
-
-        cout << "Polyglot book 1: " << (std::string)Options["BIN Book 1 File"] << endl;
-        Books[0].show_moves(pos);
-
-        cout << "Polyglot book 2: " << (std::string)Options["BIN Book 2 File"] << endl;
-        Books[1].show_moves(pos);
+        cout << ss.str() << endl;
     }
 }
 

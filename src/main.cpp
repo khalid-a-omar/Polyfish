@@ -27,6 +27,9 @@
 #include "thread.h"
 #include "tt.h"
 #include "uci.h"
+#if defined(POLYFISH)
+#include "book/book.h"
+#endif
 
 using namespace Polyfish;
 
@@ -45,6 +48,9 @@ int main(int argc, char* argv[]) {
   Threads.set(size_t(Options["Threads"]));
   Search::clear(); // After threads are up
   Eval::NNUE::init();
+#if defined(POLYFISH)
+  Book::init();
+#endif
 
   UCI::loop(argc, argv);
 

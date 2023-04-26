@@ -52,6 +52,9 @@ using fun8_t = bool(*)(HANDLE, BOOL, PTOKEN_PRIVILEGES, DWORD, PTOKEN_PRIVILEGES
 #include <sstream>
 #include <string_view>
 #include <vector>
+#if defined(POLYFISH)
+#include <stdarg.h>
+#endif
 
 #if defined(__linux__) && !defined(__ANDROID__)
 #include <stdlib.h>
@@ -784,7 +787,7 @@ void init([[maybe_unused]] int argc, char* argv[]) {
     // extract the binary directory path from argv0
     binaryDirectory = argv0;
     size_t pos = binaryDirectory.find_last_of("\\/");
-    if (pos == std::string::npos)
+    if (pos == string::npos)
         binaryDirectory = "." + pathSeparator;
     else
         binaryDirectory.resize(pos + 1);
@@ -820,13 +823,13 @@ namespace Utility
         return s1;
     }
 
-    bool is_empty_filename(const string fn)
+    bool is_empty_filename(const string &fn)
     {
         if (fn.empty())
             return true;
 
         static string Empty = EMPTY;
-        return std::equal(
+        return equal(
             fn.begin(), fn.end(),
             Empty.begin(), Empty.end(),
             [](char a, char b) { return tolower(a) == tolower(b); });
@@ -838,7 +841,7 @@ namespace Utility
             return p;
 
         string p1 = unquote(p);
-        std::replace(p1.begin(), p1.end(), ReverseDirectorySeparator, DirectorySeparator);
+        replace(p1.begin(), p1.end(), ReverseDirectorySeparator, DirectorySeparator);
 
         return p1;
     }
@@ -874,20 +877,6 @@ namespace Utility
         return p2;
     }
 
-    bool file_exists(const string& f)
-    {
-        if (is_empty_filename(f))
-            return false;
-
-        if (FILE* file = fopen(f.c_str(), "r"))
-        {
-            fclose(file);
-            return true;
-        }
-
-        return false;
-    }
-
     size_t get_file_size(const string& f)
     {
         if(is_empty_filename(f))
@@ -917,16 +906,40 @@ namespace Utility
         if (bytes < KB)
             ss << bytes << " B";
         else if (bytes < MB)
-            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / KB) << "KB";
+            ss << fixed << setprecision(decimals) << ((double)bytes / KB) << "KB";
         else if (bytes < GB)
-            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / MB) << "MB";
+            ss << fixed << setprecision(decimals) << ((double)bytes / MB) << "MB";
         else if (bytes < TB)
-            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / GB) << "GB";
+            ss << fixed << setprecision(decimals) << ((double)bytes / GB) << "GB";
         else
-            ss << std::fixed << std::setprecision(decimals) << ((double)bytes / TB) << "TB";
+            ss << fixed << setprecision(decimals) << ((double)bytes / TB) << "TB";
 
         return ss.str();
     }
+
+    //Code is an `edited` version of: https://stackoverflow.com/a/49812018
+    string format_string(const char* const fmt, ...)
+    {
+        //Initialize use of the variable arguments
+        va_list vaArgs;
+        va_start(vaArgs, fmt);
+
+        //Acquire the required string size
+        va_start(vaArgs, fmt);
+        int len = vsnprintf(nullptr, 0, fmt, vaArgs);
+        va_end(vaArgs);
+
+        
+        //Allocate enough buffer and format
+        vector<char> v(len + 1);
+        
+        va_start(vaArgs, fmt);
+        vsnprintf(v.data(), v.size(), fmt, vaArgs);
+        va_end(vaArgs);
+
+        return string(v.data(), len);
+    }
+
 } // namespace Utility
 #endif
 

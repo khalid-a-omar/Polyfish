@@ -200,16 +200,17 @@ namespace Utility
 #endif
 
     std::string unquote(const std::string& s);
-    bool is_empty_filename(const std::string f);
+    bool is_empty_filename(const std::string &f);
     std::string fix_path(const std::string& p);
     std::string combine_path(const std::string& p1, const std::string& p2);
     std::string map_path(const std::string& p);
 
-    bool file_exists(const std::string& f);
     size_t get_file_size(const std::string& f);
     bool is_same_file(const std::string& f1, const std::string& f2);
 
     std::string format_bytes(uint64_t bytes, int decimals);
+
+    std::string format_string(const char* const fmt, ...);
 
     class FileMapping
     {
@@ -365,10 +366,10 @@ namespace Utility
             return (baseAddress != nullptr && dataSize != 0);
         }
 
-        const char* data() const
+        const unsigned char* data() const
         {
             assert(mapping != 0 && baseAddress != nullptr && dataSize != 0);
-            return (const char *)baseAddress;
+            return (const unsigned char *)baseAddress;
         }
 
         size_t data_size() const

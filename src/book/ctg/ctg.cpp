@@ -1,67 +1,16 @@
 #if defined(POLYFISH)
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#  define NOMINMAX // Disable macros min() and max()
-#endif
-#include <windows.h>
-#else
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#endif
-
 #include <iostream>
 #include <random>
 #include <vector>
 #include <sstream>
 #include <iomanip>
-#include "../types.h"
-#include "../misc.h"
-#include "../uci.h"
-#include "../movegen.h"
-#include "ctgbook.h"
+#include "../../movegen.h"
+#include "../../uci.h"
+#include "ctg.h"
 
 using namespace std;
 using namespace Polyfish;
-
-namespace
-{
-    static const union { uint32_t i; char c[4]; } Le = { 0x01020304 };
-    static const bool IsBigEndian = (Le.c[0] == 1);
-
-    template <typename IntType>
-    IntType read_big_endian(const char* buffer, size_t dataLength, size_t offset)
-    {
-        IntType result;
-        constexpr size_t typeSize = sizeof(IntType);
-
-		if (offset + typeSize > dataLength)
-		{
-			assert(false);
-			return IntType();
-		}
-
-        //Read the integer type and convert (if needed)
-        memcpy(&result, buffer + offset, typeSize);
-
-        if (!IsBigEndian)
-        {
-            unsigned char u[typeSize];
-            typename std::make_unsigned<IntType>::type v = 0;
-
-            memcpy(&u, &result, typeSize);
-            for (size_t i = 0; i < typeSize; ++i)
-                v = (v << 8) | u[i];
-
-            memcpy(&result, &v, typeSize);
-        }
-
-        return result;
-    }
-}
 
 namespace
 {
@@ -256,287 +205,282 @@ namespace
 	constexpr size_t MoveEncSize = sizeof(moveTable) / sizeof(moveTable[0]);
 }
 
-static std::default_random_engine randomEngine = std::default_random_engine(now());
-
-enum class CtgMoveAnnotation
+namespace
 {
-	None            = 0x00,
-	GoodMove        = 0x01, //!
-	BadMove         = 0x02, //?
-	ExcellentMove   = 0x03, //!!
-	LosingMove      = 0x04, //??
-	InterestingMove = 0x05, //!?
-	DubiousMove     = 0x06, //?!
-	OnlyMove        = 0x08,
-	Zugzwang        = 0x16,
-	Unknown         = 0xFF,
-};
+	static default_random_engine randomEngine = default_random_engine(now());
 
-enum class CtgMoveRecommendation
-{
-	NoPreference = 0x00,
-	RedMove      = 0x40,
-	GreenMove    = 0x80,
-	Unknown      = 0xFF,
-};
-
-enum class CtgMoveCommentary
-{
-	None                 = 0x00,
-	Equal                = 0x0B, //=
-	Unclear              = 0x0D,
-	EqualPlus            = 0x0E, //=+
-	PlusEqual            = 0x0F, //+=
-	MinusSlashPlus       = 0x10, //-/+
-	PlusSlashMinus       = 0x11, //+/-
-	PlusMinus            = 0x13, //+-
-	DevelopmentAdvantage = 0x20,
-	Initiative           = 0x24,
-	WithAttack           = 0x28,
-	Compensation         = 0x2C,
-	Counterplay          = 0x84,
-	Zeitnot              = 0x8A,
-	Novelty              = 0x92,
-	Unknown              = 0xFF,
-};
-
-struct CtgMoveStats
-{
-	int32_t win;
-	int32_t loss;
-	int32_t draw;
-
-	int32_t ratingDiv;
-	int32_t ratingSum;
-
-	CtgMoveStats()
+	enum class CtgMoveAnnotation
 	{
-		win = 0;
-		loss = 0;
-		draw = 0;
+		None = 0x00,
+		GoodMove = 0x01, //!
+		BadMove = 0x02, //?
+		ExcellentMove = 0x03, //!!
+		LosingMove = 0x04, //??
+		InterestingMove = 0x05, //!?
+		DubiousMove = 0x06, //?!
+		OnlyMove = 0x08,
+		Zugzwang = 0x16,
+		Unknown = 0xFF,
+	};
 
-		ratingDiv = 0;
-		ratingSum = 0;
-	}
-};
-
-struct CtgMove : CtgMoveStats
-{
-	Square fromSq;
-	Square toSq;
-
-	CtgMoveAnnotation     annotation;
-	CtgMoveRecommendation recommendation;
-	CtgMoveCommentary     commentary;
-
-	Move				  sfMove;
-	int64_t				  moveWeight;
-
-	CtgMove() : CtgMoveStats()
+	enum class CtgMoveRecommendation
 	{
-		fromSq = SQ_NONE;
-		toSq   = SQ_NONE;
+		NoPreference = 0x00,
+		RedMove = 0x40,
+		GreenMove = 0x80,
+		Unknown = 0xFF,
+	};
 
-		annotation     = CtgMoveAnnotation::Unknown;
-		recommendation = CtgMoveRecommendation::Unknown;
-		commentary     = CtgMoveCommentary::Unknown;
-
-		sfMove		   = MOVE_NONE;
-		moveWeight     = std::numeric_limits<int64_t>::min();
-	}
-
-	Move set_sf_move(Move m)
+	enum class CtgMoveCommentary
 	{
-		return sfMove = m;
-	}
+		None = 0x00,
+		Equal = 0x0B, //=
+		Unclear = 0x0D,
+		EqualPlus = 0x0E, //=+
+		PlusEqual = 0x0F, //+=
+		MinusSlashPlus = 0x10, //-/+
+		PlusSlashMinus = 0x11, //+/-
+		PlusMinus = 0x13, //+-
+		DevelopmentAdvantage = 0x20,
+		Initiative = 0x24,
+		WithAttack = 0x28,
+		Compensation = 0x2C,
+		Counterplay = 0x84,
+		Zeitnot = 0x8A,
+		Novelty = 0x92,
+		Unknown = 0xFF,
+	};
 
-	Move move() const
+	struct CtgMoveStats
 	{
-		return sfMove;
-	}
+		int32_t win;
+		int32_t loss;
+		int32_t draw;
 
-	int64_t weight() const
-	{
-		assert(moveWeight != std::numeric_limits<int64_t>::min());
-		return moveWeight;
-	}
-};
+		int32_t ratingDiv;
+		int32_t ratingSum;
 
-struct CtgMoveList : public vector<CtgMove>
-{
-	CtgMoveStats    positionStats;
-
-	void calculate_weights()
-	{
-		if (size() == 0)
-			return;
-
-		auto calculate_pseudo_weight = [](CtgMove& m, int win, int loss, int draw) -> int64_t
+		CtgMoveStats()
 		{
-			static constexpr int64_t MAX_WEIGHT = std::numeric_limits<int16_t>::max();
-			static constexpr int64_t MIN_WEIGHT = std::numeric_limits<int16_t>::min();
+			win = 0;
+			loss = 0;
+			draw = 0;
 
-			int64_t winFactor            = 2;
-			int64_t lossFactor           = 2;
-			constexpr int64_t drawFactor = 1;
+			ratingDiv = 0;
+			ratingSum = 0;
+		}
+	};
 
-			//Recommendation
-			switch (m.recommendation)
-			{
-			case CtgMoveRecommendation::GreenMove:
-				winFactor += 10;
-				break;
+	struct CtgMove : CtgMoveStats
+	{
+		Square fromSq;
+		Square toSq;
 
-			case CtgMoveRecommendation::RedMove:
-				lossFactor += 10;
-				break;
+		CtgMoveAnnotation     annotation;
+		CtgMoveRecommendation recommendation;
+		CtgMoveCommentary     commentary;
 
-			default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
-				break;
-			}
+		Move				  sfMove;
+		int64_t				  moveWeight;
 
-			//Annotation
-			switch (m.annotation)
-			{
-			case CtgMoveAnnotation::GoodMove:
-				winFactor += 2;
-				break;
-
-			case CtgMoveAnnotation::BadMove:
-				lossFactor += 2;
-				break;
-
-			case CtgMoveAnnotation::ExcellentMove:
-				winFactor += 3;
-				break;
-
-			case CtgMoveAnnotation::LosingMove:
-				lossFactor += 3;
-				break;
-
-			case CtgMoveAnnotation::InterestingMove:
-				winFactor += 1;
-				break;
-
-			case CtgMoveAnnotation::DubiousMove:
-				lossFactor += 1;
-				break;
-
-			case CtgMoveAnnotation::OnlyMove:
-				winFactor += MAX_WEIGHT;
-				break;
-
-			default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
-				break;
-			}
-
-			if (winFactor == MAX_WEIGHT)
-				return MAX_WEIGHT;
-
-			if (lossFactor == MAX_WEIGHT)
-				return MIN_WEIGHT;
-
-			return (win * winFactor - loss * lossFactor + draw * drawFactor);
-		};
-
-		//Calculate average number of games
-		int64_t avgGames  = 0;		
-		for (const CtgMove& m : *this)
-			avgGames += m.win + m.loss + m.draw;
-
-		avgGames /= size();
-		if (avgGames == 0)
-			avgGames = 1;
-
-		//Calculate weight assuming all moves have played the
-		// calculated average number of games, by adding (or removing)
-		// an equal number of won, lost, and drawn games to each move
-		//Also calculate minimum and maximum for normalization later
-		int64_t maxWeight = std::numeric_limits<int64_t>::min();
-		int64_t minWeight = std::numeric_limits<int64_t>::max();
-		for (CtgMove& m : *this)
+		CtgMove() : CtgMoveStats()
 		{
-			int64_t games = m.win + m.loss + m.draw;
-			int64_t diff = (avgGames - games) / 3;
+			fromSq = SQ_NONE;
+			toSq = SQ_NONE;
 
-			int64_t win  = std::max<int64_t>(m.win  + diff, 0);
-			int64_t loss = std::max<int64_t>(m.loss + diff, 0);
-			int64_t draw = std::max<int64_t>(m.draw + diff, 0);
+			annotation = CtgMoveAnnotation::Unknown;
+			recommendation = CtgMoveRecommendation::Unknown;
+			commentary = CtgMoveCommentary::Unknown;
 
-			assert(win + draw + loss >= 0);
-			if (win + loss + draw == 0)
-				m.moveWeight = 0;
-			else
-				m.moveWeight = calculate_pseudo_weight(m, win, loss, draw);
-
-			if (m.moveWeight < minWeight)
-				minWeight = m.moveWeight;
-
-			if (m.moveWeight > maxWeight)
-				maxWeight = m.moveWeight;
+			sfMove = MOVE_NONE;
+			moveWeight = numeric_limits<int64_t>::min();
 		}
 
-		//Normalize to [-100, +100]
-		for (CtgMove& m : *this)
+		Move set_sf_move(Move m)
 		{
-			if (maxWeight == minWeight)
-			{
-				m.moveWeight = 0;
-				continue;
-			}
-
-			m.moveWeight = (m.moveWeight - minWeight) * 200 / (maxWeight - minWeight) - 100;
+			return sfMove = m;
 		}
 
-		//Sort
-		stable_sort(begin(), end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });
-	}
-};
+		Move move() const
+		{
+			return sfMove;
+		}
 
-struct CtgPositionData
-{
-	Square           epSquare;
-	bool             invert;
-	bool             flip;
-	char             board[64];
+		int64_t weight() const
+		{
+			assert(moveWeight != numeric_limits<int64_t>::min());
+			return moveWeight;
+		}
+	};
 
-	unsigned char    encodedPosition[32];
-	int32_t          encodedPosLen;
-	int32_t          encodedBitsLeft;
-
-	unsigned char    positionPage[256];
-
-public:
-	CtgPositionData()
+	struct CtgMoveList : public vector<CtgMove>
 	{
-		epSquare = SQ_NONE;
-		invert = false;
-		flip = false;
-		
-		memset(board, 0, sizeof(board));
-		memset(encodedPosition, 0, sizeof(encodedPosition));
+		CtgMoveStats    positionStats;
 
-		encodedPosLen = 0;
-		encodedBitsLeft = 0;
+		void calculate_weights()
+		{
+			if (size() == 0)
+				return;
 
-		memset(positionPage, 0, sizeof(positionPage));
-	}
+			auto calculate_pseudo_weight = [](CtgMove& m, int win, int loss, int draw) -> int64_t
+			{
+				static constexpr int64_t MAX_WEIGHT = numeric_limits<int16_t>::max();
+				static constexpr int64_t MIN_WEIGHT = numeric_limits<int16_t>::min();
 
-	CtgPositionData(const CtgPositionData&) = delete;
-	CtgPositionData& operator =(const CtgPositionData&) = delete;
-};
+				int64_t winFactor = 2;
+				int64_t lossFactor = 2;
+				constexpr int64_t drawFactor = 1;
 
-class CtgBook
+				//Recommendation
+				switch (m.recommendation)
+				{
+				case CtgMoveRecommendation::GreenMove:
+					winFactor += 10;
+					break;
+
+				case CtgMoveRecommendation::RedMove:
+					lossFactor += 10;
+					break;
+
+				default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
+					break;
+				}
+
+				//Annotation
+				switch (m.annotation)
+				{
+				case CtgMoveAnnotation::GoodMove:
+					winFactor += 2;
+					break;
+
+				case CtgMoveAnnotation::BadMove:
+					lossFactor += 2;
+					break;
+
+				case CtgMoveAnnotation::ExcellentMove:
+					winFactor += 3;
+					break;
+
+				case CtgMoveAnnotation::LosingMove:
+					lossFactor += 3;
+					break;
+
+				case CtgMoveAnnotation::InterestingMove:
+					winFactor += 1;
+					break;
+
+				case CtgMoveAnnotation::DubiousMove:
+					lossFactor += 1;
+					break;
+
+				case CtgMoveAnnotation::OnlyMove:
+					winFactor += MAX_WEIGHT;
+					break;
+
+				default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
+					break;
+				}
+
+				if (winFactor == MAX_WEIGHT)
+					return MAX_WEIGHT;
+
+				if (lossFactor == MAX_WEIGHT)
+					return MIN_WEIGHT;
+
+				return (win * winFactor - loss * lossFactor + draw * drawFactor);
+			};
+
+			//Calculate average number of games
+			int64_t avgGames = 0;
+			for (const CtgMove& m : *this)
+				avgGames += m.win + m.loss + m.draw;
+
+			avgGames /= size();
+			if (avgGames == 0)
+				avgGames = 1;
+
+			//Calculate weight assuming all moves have played the
+			// calculated average number of games, by adding (or removing)
+			// an equal number of won, lost, and drawn games to each move
+			//Also calculate minimum and maximum for normalization later
+			int64_t maxWeight = numeric_limits<int64_t>::min();
+			int64_t minWeight = numeric_limits<int64_t>::max();
+			for (CtgMove& m : *this)
+			{
+				int64_t games = m.win + m.loss + m.draw;
+				int64_t diff = (avgGames - games) / 3;
+
+				int64_t win = max<int64_t>(m.win + diff, 0);
+				int64_t loss = max<int64_t>(m.loss + diff, 0);
+				int64_t draw = max<int64_t>(m.draw + diff, 0);
+
+				assert(win + draw + loss >= 0);
+				if (win + loss + draw == 0)
+					m.moveWeight = 0;
+				else
+					m.moveWeight = calculate_pseudo_weight(m, win, loss, draw);
+
+				if (m.moveWeight < minWeight)
+					minWeight = m.moveWeight;
+
+				if (m.moveWeight > maxWeight)
+					maxWeight = m.moveWeight;
+			}
+
+			//Normalize to [-100, +100]
+			for (CtgMove& m : *this)
+			{
+				if (maxWeight == minWeight)
+				{
+					m.moveWeight = 0;
+					continue;
+				}
+
+				m.moveWeight = (m.moveWeight - minWeight) * 200 / (maxWeight - minWeight) - 100;
+			}
+
+			//Sort
+			stable_sort(begin(), end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });
+		}
+	};
+
+	struct CtgPositionData
+	{
+		Square           epSquare;
+		bool             invert;
+		bool             flip;
+		char             board[64];
+
+		unsigned char    encodedPosition[32];
+		int32_t          encodedPosLen;
+		int32_t          encodedBitsLeft;
+
+		unsigned char    positionPage[256];
+
+	public:
+		CtgPositionData()
+		{
+			epSquare = SQ_NONE;
+			invert = false;
+			flip = false;
+
+			memset(board, 0, sizeof(board));
+			memset(encodedPosition, 0, sizeof(encodedPosition));
+
+			encodedPosLen = 0;
+			encodedBitsLeft = 0;
+
+			memset(positionPage, 0, sizeof(positionPage));
+		}
+
+		CtgPositionData(const CtgPositionData&) = delete;
+		CtgPositionData& operator =(const CtgPositionData&) = delete;
+	};
+}
+
+namespace Polyfish::Book::CTG
 {
-private:
-    Utility::FileMapping cto;
-	Utility::FileMapping ctg;
-    uint32_t             pageLowerBound;
-    uint32_t             pageUpperBound;
-	bool                 isOpen;
-
-private:
-	bool decode(const Position &pos, CtgPositionData &positionData) const
+	bool CtgBook::decode(const Position& pos, CtgPositionData& positionData) const
 	{
 		positionData.epSquare = pos.ep_square();
 		positionData.invert = pos.side_to_move() == BLACK;
@@ -563,9 +507,9 @@ private:
 		return true;
 	}
 
-	void decode_board(const Position& pos, CtgPositionData& positionData) const
+	void CtgBook::decode_board(const Position& pos, CtgPositionData& positionData) const
 	{
-		static constexpr std::string_view PieceToChar(" PNBRQK  pnbrqk");
+		static constexpr string_view PieceToChar(" PNBRQK  pnbrqk");
 
 		//Clear the internal board representation
 		memset(positionData.board, 0, sizeof(positionData.board));
@@ -582,7 +526,7 @@ private:
 		}
 	}
 
-	void invert_board(CtgPositionData& positionData) const
+	void CtgBook::invert_board(CtgPositionData& positionData) const
 	{
 		//Flip
 		for (size_t y = 0; y < 4; ++y)
@@ -616,7 +560,7 @@ private:
 	//Board should be flipped if:
 	//1) No side can castle, and
 	//2) White King is on the left side of the board (ranks RANK_1, RANK_2, RANK_3, RANK_4)
-	bool needs_flipping(const Position& pos) const
+	bool CtgBook::needs_flipping(const Position& pos) const
 	{
 		if (pos.can_castle(ANY_CASTLING))
 			return false;
@@ -626,7 +570,7 @@ private:
 		return rank_of(ksq) <= RANK_4;
 	}
 
-	void flip_board(const Position& pos, CtgPositionData& positionData) const
+	void CtgBook::flip_board(const Position& pos, CtgPositionData& positionData) const
 	{
 		//Flip horizontally
 		for (size_t y = 0; y < 8; ++y)
@@ -645,7 +589,7 @@ private:
 			epSquare = flip_rank(epSquare);
 	}
 
-	void encode_position(const Position& pos, CtgPositionData& positionData) const
+	void CtgBook::encode_position(const Position& pos, CtgPositionData& positionData) const
 	{
 		auto put_bit = [&](int32_t b)
 		{
@@ -828,9 +772,9 @@ private:
 			positionData.encodedPosition[0] |= 0x20;
 	}
 
-	bool read_position_data(CtgPositionData& positionData, uint32_t pageNum) const
+	bool CtgBook::read_position_data(CtgPositionData& positionData, uint32_t pageNum) const
 	{
-		uint32_t pagePos = read_big_endian<uint32_t>(cto.data(), cto.data_size(), pageNum * 4 + 16);
+		uint32_t pagePos = BookUtil::read_big_endian<uint32_t>(cto.data() + pageNum * 4 + 16, cto.data_size());
 		if (pagePos == 0xFFFFFFFF)
 			return false;
 
@@ -840,7 +784,7 @@ private:
 		unsigned char pageData[4096];
 		memcpy(pageData, ctg.data() + (pagePos + 1) * 4096, 4096);
 
-		uint16_t pageLength = read_big_endian<uint16_t>((const char*)pageData, sizeof(pageData), 2);
+		uint16_t pageLength = BookUtil::read_big_endian<uint16_t>((const unsigned char*)pageData + 2, sizeof(pageData));
 
 		if (pageLength > 4096)
 		{
@@ -874,7 +818,7 @@ private:
 		return false;
 	}
 
-	uint32_t gen_position_hash(CtgPositionData& positionData) const
+	uint32_t CtgBook::gen_position_hash(CtgPositionData& positionData) const
 	{
 		int32_t hash = 0;
 		int16_t tmp = 0;
@@ -893,7 +837,7 @@ private:
 		return hash;
 	}
 
-	bool lookup_position(CtgPositionData& positionData) const
+	bool CtgBook::lookup_position(CtgPositionData& positionData) const
 	{
 		uint32_t hash = gen_position_hash(positionData);
 
@@ -914,14 +858,14 @@ private:
 		return false;
 	}
 
-	void get_stats(const CtgPositionData& positionData, CtgMoveStats& stats, bool isMove) const
+	void CtgBook::get_stats(const CtgPositionData& positionData, CtgMoveStats& stats, bool isMove) const
 	{
 		const unsigned char* posPageData = positionData.positionPage;
 		posPageData += *posPageData;
 		posPageData += 3;
 
 		//Win-loss-draw
-		stats.win  = (posPageData[0] << 16) | (posPageData[1] << 8) | posPageData[2];
+		stats.win = (posPageData[0] << 16) | (posPageData[1] << 8) | posPageData[2];
 		stats.loss = (posPageData[3] << 16) | (posPageData[4] << 8) | posPageData[5];
 		stats.draw = (posPageData[6] << 16) | (posPageData[7] << 8) | posPageData[8];
 
@@ -940,7 +884,7 @@ private:
 		if (!isMove)
 			return;
 
-		CtgMove& ctgMove = (CtgMove &)stats;
+		CtgMove& ctgMove = (CtgMove&)stats;
 
 		//Recommendations
 		CtgMoveRecommendation r = (CtgMoveRecommendation)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7];
@@ -1005,13 +949,13 @@ private:
 		}
 	}
 
-	Move get_pseudo_move(const CtgPositionData& positionData, int moveNum) const
+	Move CtgBook::get_pseudo_move(const CtgPositionData& positionData, int moveNum) const
 	{
 		unsigned char encodedMove = positionData.positionPage[moveNum * 2 + 1];
 
 		//Search
 		size_t index = 0;
-		while(index < MoveEncSize)
+		while (index < MoveEncSize)
 		{
 			if (encodedMove == moveTable[index].encoding)
 				break;
@@ -1048,25 +992,25 @@ private:
 		return MOVE_NONE;
 	}
 
-	bool get_move(const CtgPositionData& positionData, int moveNum, CtgMove &ctgMove) const
+	bool CtgBook::get_move(const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const
 	{
 		Move m = get_pseudo_move(positionData, moveNum);
 		if (m == MOVE_NONE)
 			return false;
 
 		Square from = from_sq(m);
-		Square to   = to_sq(m);
+		Square to = to_sq(m);
 
 		if (positionData.invert)
 		{
 			from = flip_rank(from);
-			to   = flip_rank(to);
+			to = flip_rank(to);
 		}
 
 		if (positionData.flip)
 		{
 			from = flip_file(from);
-			to   = flip_file(to);
+			to = flip_file(to);
 		}
 
 		//Fill the CTG move
@@ -1097,7 +1041,7 @@ private:
 		return true;
 	}
 
-	void get_moves(const Position& pos, const CtgPositionData& positionData, CtgMoveList &ctgMoveList) const
+	void CtgBook::get_moves(const Position& pos, const CtgPositionData& positionData, CtgMoveList& ctgMoveList) const
 	{
 		//Get legal moves for cross checking later
 		MoveList legalMoves = MoveList<LEGAL>(pos);
@@ -1148,13 +1092,22 @@ private:
 		ctgMoveList.calculate_weights();
 	}
 
-public:
-    CtgBook() : cto(), ctg(), pageLowerBound(0), pageUpperBound(0), isOpen(false)
-    {
-    }
+	CtgBook::CtgBook() : cto(), ctg(), pageLowerBound(0), pageUpperBound(0), isOpen(false)
+	{
+	}
 
-    bool open(const string &f, bool verbose)
-    {
+	CtgBook::~CtgBook()
+	{
+		close();
+	}
+
+	string CtgBook::type() const
+	{
+		return "CTG";
+	}
+
+	bool CtgBook::open(const string& f)
+	{
 		//Close current file
 		close();
 
@@ -1162,76 +1115,70 @@ public:
 		if (Utility::is_empty_filename(f))
 			return true;
 
-        //CTG
+		//CTG
 		string fn = Utility::map_path(f);
-        string ctgFile = fn.substr(0, fn.find_last_of('.')) + ".ctg";
-        if (!ctg.map(ctgFile.c_str(), verbose))
-        {
-            close();
+		string ctgFile = fn.substr(0, fn.find_last_of('.')) + ".ctg";
+		if (!ctg.map(ctgFile.c_str(), true))
+		{
+			close();
 
-            if (verbose)
-                sync_cout << "info string Could not open CTG file: " << ctgFile << sync_endl;
+			sync_cout << "info string Could not open CTG file: " << ctgFile << sync_endl;
+			return false;
+		}
 
-            return false;
-        }
+		//CTO
+		string ctoFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".cto";
+		if (!cto.map(ctoFile.c_str(), true))
+		{
+			close();
 
-        //CTO
-        string ctoFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".cto";
-        if (!cto.map(ctoFile.c_str(), verbose))
-        {
-            close();
+			sync_cout << "info string Could not open CTO file: " << ctoFile << sync_endl;
+			return false;
+		}
 
-            if (verbose)
-                sync_cout << "info string Could not open CTO file: " << ctoFile << sync_endl;
-
-            return false;
-        }
-
-        //CTB
-        string ctbFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".ctb";
+		//CTB
+		string ctbFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".ctb";
 		Utility::FileMapping ctb;
-        if (!ctb.map(ctbFile.c_str(), verbose))
-        {
-            close();
+		if (!ctb.map(ctbFile.c_str(), true))
+		{
+			close();
 
-            if (verbose)
-                sync_cout << "info string Could not open CTB file: " << ctbFile << sync_endl;
+			sync_cout << "info string Could not open CTB file: " << ctbFile << sync_endl;
+			return false;
+		}
 
-            return false;
-        }
+		//Read page bounds from CTB
+		size_t offset = 4;
+		pageLowerBound = BookUtil::read_big_endian<uint32_t>(ctb.data(), offset, ctb.data_size());
+		pageUpperBound = BookUtil::read_big_endian<uint32_t>(ctb.data(), offset, ctb.data_size());
 
-        //Read page bounds from CTB
-        pageLowerBound = read_big_endian<uint32_t>(ctb.data(), ctb.data_size(), 4);
-        pageUpperBound = read_big_endian<uint32_t>(ctb.data(), ctb.data_size(), 8);
-
-        //We no longer need the CTB file
-        ctb.unmap();
+		//We no longer need the CTB file
+		ctb.unmap();
 
 		isOpen = true;
-		if (verbose)
-			sync_cout << "info string CTG Book [" << ctgFile << "] opened successfully" << sync_endl;
 
-        return true;
-    }
+		sync_cout << "info string CTG Book [" << ctgFile << "] opened successfully" << sync_endl;
+		return true;
+	}
 
-    void close()
-    {
-        ctg.unmap();
-        cto.unmap();
+	void CtgBook::close()
+	{
+		ctg.unmap();
+		cto.unmap();
 
-        pageLowerBound = 0;
-        pageUpperBound = 0;
+		pageLowerBound = 0;
+		pageUpperBound = 0;
 
 		isOpen = false;
-    }
+	}
 
-	bool is_open() const
+	bool CtgBook::is_open() const
 	{
 		return isOpen;
 	}
 
-    Move probe(const Position& pos, size_t width)
-    {
+	Move CtgBook::probe(const Position& pos, size_t width) const
+	{
 		if (!is_open())
 			return MOVE_NONE;
 
@@ -1249,7 +1196,7 @@ public:
 		stable_sort(ctgMoveList.begin(), ctgMoveList.end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });
 
 		//Only keep the top 'width' moves in the list
-		while(ctgMoveList.size() > width)
+		while (ctgMoveList.size() > width)
 			ctgMoveList.pop_back();
 
 		size_t selectedMoveIndex = 0;
@@ -1263,10 +1210,10 @@ public:
 		}
 
 		return ctgMoveList[selectedMoveIndex].move();
-    }
+	}
 
-    void show_moves(const Position& pos)
-    {
+	void CtgBook::show_moves(const Position& pos) const
+	{
 		if (!is_open())
 			return;
 
@@ -1286,7 +1233,7 @@ public:
 			return;
 		}
 
-		for (const CtgMove &m : ctgMoveList)
+		for (const CtgMove& m : ctgMoveList)
 		{
 			ss << UCI::move(m.move(), pos.is_chess960())
 				<< setw(12) << m.win
@@ -1298,57 +1245,7 @@ public:
 
 		//Not using info_cout/sync_endl
 		sync_cout << ss.str() << sync_endl;
-    }
-};
-
-namespace CTG
-{
-    CtgBook ctgBooks[2];
-
-    void on_book(int index, const string filename)
-    {
-		ctgBooks[index].open(filename, true);
-    }
-
-    Move probe(const Position& pos)
-    {
-        Move bookMove = MOVE_NONE;
-        int moveNumber = 1 + pos.game_ply() / 2;
-
-        if ((int)Options["CTG Book 1 Depth"] >= moveNumber)
-            bookMove = ctgBooks[0].probe(pos, (size_t)(int)Options["CTG Book 1 Width"]);
-
-        if (bookMove == MOVE_NONE)
-        {
-            if ((int)Options["CTG Book 2 Depth"] >= moveNumber)
-                bookMove = ctgBooks[1].probe(pos, (size_t)(int)Options["CTG Book 2 Width"]);
-        }
-
-        return bookMove;
-    }
-
-    void init()
-    {
-        on_book(0, (string)Options["CTG Book 1 File"]);
-        on_book(1, (string)Options["CTG Book 2 File"]);
-    }
-
-	void finalize()
-	{
-		ctgBooks[0].close();
-		ctgBooks[1].close();
 	}
-
-    void show_moves(const Position& pos)
-    {
-		sync_cout << pos << endl << sync_endl;
-
-		sync_cout << "info string CTG book 1: " << (std::string)Options["CTG Book 1 File"] << sync_endl;
-		ctgBooks[0].show_moves(pos);
-
-		sync_cout << "info string CTG book 2: " << (std::string)Options["CTG Book 2 File"] << sync_endl;
-		ctgBooks[1].show_moves(pos);
-    }
 }
 
 #endif

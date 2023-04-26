@@ -30,11 +30,14 @@
     <ClCompile Include="src\syzygy\tbprobe.cpp">
       <Filter>syzygy</Filter>
     </ClCompile>
-    <ClCompile Include="src\ctg\ctgbook.cpp">
-      <Filter>ctg</Filter>
+    <ClCompile Include="src\book\ctg\ctg.cpp">
+      <Filter>book\ctg</Filter>
     </ClCompile>
-    <ClCompile Include="src\polyglot\polyglot.cpp">
-      <Filter>polyglot</Filter>
+    <ClCompile Include="src\book\polyglot\polyglot.cpp">
+      <Filter>book\polyglot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\book\book.cpp">
+      <Filter>book</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,11 +96,14 @@
       <Filter>nnue\layers</Filter>
     </ClInclude>
     <ClInclude Include="src\benchmark.h" />
-    <ClInclude Include="src\ctg\ctgbook.h">
-      <Filter>ctg</Filter>
+    <ClInclude Include="src\book\ctg\ctg.h">
+      <Filter>book\ctg</Filter>
     </ClInclude>
-    <ClInclude Include="src\polyglot\polyglot.h">
-      <Filter>polyglot</Filter>
+    <ClInclude Include="src\book\polyglot\polyglot.h">
+      <Filter>book\polyglot</Filter>
+    </ClInclude>
+    <ClInclude Include="src\book\book.h">
+      <Filter>book</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -119,11 +125,14 @@
     <Filter Include="incbin">
       <UniqueIdentifier>{a2986123-407f-4f30-aef5-aed9ce026e22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="polyglot">
-      <UniqueIdentifier>{e95b96f9-2e67-4bd8-8ed1-58978673d04c}</UniqueIdentifier>
+    <Filter Include="book">
+      <UniqueIdentifier>{593e844c-23bb-41c5-92f4-1d88f95019eb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ctg">
-      <UniqueIdentifier>{2b21ec9c-7185-4af6-87a4-0ac0e5f558a6}</UniqueIdentifier>
+    <Filter Include="book\ctg">
+      <UniqueIdentifier>{be85fa65-4216-468f-832e-b79cb54743b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="book\polyglot">
+      <UniqueIdentifier>{bafa7e1f-0cf7-46ad-9015-9d71946c836a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
