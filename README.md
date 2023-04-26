@@ -11,6 +11,8 @@
 * [ctgexporter](https://github.com/sshivaji/ctgexporter)
 * [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
 
+#### Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
+
 ## Files
 
 This distribution of Polyfish consists of the following files:
@@ -30,8 +32,10 @@ This distribution of Polyfish consists of the following files:
 Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
 
 Polyfish also supports the following UCI options
- * #### Book 1 File
-    The name of the polyglot book to be used as the first book. To disable this book, use: ```<empty>```
+  * #### CTG/BIN Book 1 File
+    The file name of the first book file which could be a polyglot (BIN) or Chessbase (CTG) book. To disable this book, use: ```<empty>```
+    If the book (CTG or BIN) is in a different directory than the engine executable, then configure the full path of the book file, example:
+    ```C:\Path\To\My\Book.ctg``` or ```/home/username/path/to/book/bin```
 
   * #### Book 1 Width
     The number of moves to consider from the book for the same position. To play best book move, set this option to ```1```. If a value ```n``` (greater than ```1```) is configured, the engine will pick **randomly** one of the top ```n``` moves available in the book for the given position
@@ -39,22 +43,23 @@ Polyfish also supports the following UCI options
   * #### Book 1 Depth
     The maximum number of moves to play from the book
     
- * #### Book 2 File
-    Same explaination as **Book 1 File**, but for the second polyglot book
+  * #### CTG/BIN Book 2 File
+    Same explaination as **CTG/BIN Book 1 File**, but for the second book
 
   * #### Book 2 Width
-    Same explaination as **Book 1 Width**, but for the second polyglot book
+    Same explaination as **BIN Book 1 Width**, but for the second polyglot book
 
   * #### Book 2 Depth
-    Same explaination as **Book 1 Depth**, but for the second polyglot book
+    Same explaination as **BIN Book 1 Depth**, but for the second polyglot book
+
 
 ## UCI commands
 Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
 
 Polyfish also supports the following UCI commands
 
-  * #### poly
-    This command causes the engine to print available Polyglot (BIN) book moves in the loaded books
+  * #### book
+    This command causes the engine to show available moves and associated information from the currently configured books
 	```
 	position startpos
 	poly
@@ -108,57 +113,12 @@ Polyfish also supports the following UCI commands
 	19: b1a3 , count: 1
 	20: f2f3 , count: 1
 	```
-* #### ctg
-    This command causes the engine to print available CTG book moves in the loaded books
-	```
-	setoption name CTG Book 1 File value Full-Path-To-CTG-File.ctg
-	info string CTG Book [Full-Path-To-CTG-File.ctg] opened successfully
-	position startpos
-	ctg
 
-	 +---+---+---+---+---+---+---+---+
-	 | r | n | b | q | k | b | n | r | 8
-	 +---+---+---+---+---+---+---+---+
-	 | p | p | p | p | p | p | p | p | 7
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 6
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 5
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 4
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 3
-	 +---+---+---+---+---+---+---+---+
-	 | P | P | P | P | P | P | P | P | 2
-	 +---+---+---+---+---+---+---+---+
-	 | R | N | B | Q | K | B | N | R | 1
-	 +---+---+---+---+---+---+---+---+
-	   a   b   c   d   e   f   g   h
+## Note about CTG books:
+CTG book format specification is not available to the public from Chessbase. The code that reads and parses CTG books is based on the reverse engineered book specification published on [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319) as well as the other resources mentioned earlier.
 
-	Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	Key: 8F8F01D4562F59FB
-	Checkers:
+The reverse engineered specs are good enough to proble the book for moves, but it does not provide the same functionality as Chessbase own products, for example, the logic that determines Green/Red moves is known to be only 80% - 90% accurate. Also, some move annotations and engine recommendations can be read while others are unknown.
 
-	info string CTG book 1: BookName.ctg
-	MOVE         WIN        DRAW        LOSS      WEIGHT
-	e2e4       60307       70564       43371         100
-	d2d4       52092       68959       35850          62
-	c2c4       10857       13165        6751          46
-	g1f3       13616       18556        9581          35
-	b2b3         667         426         513          34
-	g2g3         760         837         572          33
-	f2f4         277         210         326          31
-	d2d3          29          20          29        -100
-	e2e3          74          46          79        -100
-	c2c3          18          13          14        -100
-	a2a3          52          24          51        -100
-	h2h3           4           1           2        -100
-	b1c3          72          64          85        -100
-	b2b4          59          38          54        -100
-	a2a4           2           1           2        -100
-	g2g4          19          10          17        -100
-	g1h3           9           0           1        -100
-	h2h4          10           0           5        -100
-	b1a3           3           0           1        -100
-	f2f3           4           2           2        -100
-	```
+The move weight calculated by **Polyfish** (can be seen using the **ctg** command) is my own attempt to compensate for all the missing/unknown information about the CTG specification. Using the calculated weight, **Polyfish** can pick the best move for a given position in 99% of the times because it ustilizes existing move statistics such as number of wins, draws, and losses, as well as "known" annotations (!, !?, ?!, ??, OnlyMove, etc...) and recommendations (Green vs. Red) if available.
+
+Despite the fact that Polyfish can read and play from CTG Book, it is not going to be identical to Chessbase own products since it is based on the partial CTG specification available publicly. Use at your own risk!
