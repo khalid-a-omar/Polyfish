@@ -83,12 +83,14 @@ void init(OptionsMap& o) {
   o["UCI_Elo"]               << Option(1320, 1320, 3190);
   o["UCI_ShowWDL"]           << Option(false);
 #if defined(POLYFISH)
-  o["CTG/BIN Book 1 File"]   << Option("<empty>", on_book1);
-  o["Book 1 Width"]          << Option(1, 1, 20);
-  o["Book 1 Depth"]          << Option(255, 1, 255);
-  o["CTG/BIN Book 2 File"]   << Option("<empty>", on_book2);
-  o["Book 2 Width"]          << Option(1, 1, 20);
-  o["Book 2 Depth"]          << Option(255, 1, 255);
+  o["CTG/BIN Book 1 File"]     << Option("<empty>", on_book1);
+  o["Book 1 Width"]            << Option(1, 1, 20);
+  o["Book 1 Depth"]            << Option(255, 1, 255);
+  o["(CTG) Book 1 Only Green"] << Option(true);
+  o["CTG/BIN Book 2 File"]     << Option("<empty>", on_book2);
+  o["Book 2 Width"]            << Option(1, 1, 20);
+  o["Book 2 Depth"]            << Option(255, 1, 255);
+  o["(CTG) Book 2 Only Green"] << Option(true);
 #endif
   o["SyzygyPath"]            << Option("<empty>", on_tb_path);
   o["SyzygyProbeDepth"]      << Option(1, 1, 100);

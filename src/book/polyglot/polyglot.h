@@ -42,7 +42,7 @@ namespace Polyfish::Book::Polyglot
         virtual void close();
         virtual bool open(const std::string& f);
 
-        virtual Move probe(const Position& pos, size_t width) const;
+        virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const;
 
         void show_moves(const Position& pos) const;
     };

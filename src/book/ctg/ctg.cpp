@@ -311,6 +311,20 @@ namespace
 			assert(moveWeight != numeric_limits<int64_t>::min());
 			return moveWeight;
 		}
+
+		bool green() const
+		{
+			return    recommendation == CtgMoveRecommendation::GreenMove
+				   && annotation     != CtgMoveAnnotation::BadMove
+			       && annotation     != CtgMoveAnnotation::LosingMove
+				   && annotation     != CtgMoveAnnotation::InterestingMove
+				   && annotation     != CtgMoveAnnotation::DubiousMove;
+		}
+
+		bool red() const
+		{
+			return recommendation == CtgMoveRecommendation::RedMove;
+		}
 	};
 
 	struct CtgMoveList : public vector<CtgMove>
@@ -335,7 +349,7 @@ namespace
 				switch (m.recommendation)
 				{
 				case CtgMoveRecommendation::GreenMove:
-					winFactor += 10;
+					winFactor += m.green() ? 10 : 0;
 					break;
 
 				case CtgMoveRecommendation::RedMove:
@@ -350,31 +364,36 @@ namespace
 				switch (m.annotation)
 				{
 				case CtgMoveAnnotation::GoodMove:
-					winFactor += 2;
+					winFactor += m.green() ? 5 : 0;
 					break;
 
 				case CtgMoveAnnotation::BadMove:
-					lossFactor += 2;
+					lossFactor += 5;
 					break;
 
 				case CtgMoveAnnotation::ExcellentMove:
-					winFactor += 3;
+					winFactor += m.green() ? 10 : 0;
 					break;
 
 				case CtgMoveAnnotation::LosingMove:
-					lossFactor += 3;
+					lossFactor += 10;
 					break;
 
 				case CtgMoveAnnotation::InterestingMove:
-					winFactor += 1;
+					winFactor += 2;
 					break;
 
 				case CtgMoveAnnotation::DubiousMove:
+					lossFactor += 2;
+					break;
+
+				case CtgMoveAnnotation::Zugzwang:
+					winFactor  += 1;
 					lossFactor += 1;
 					break;
 
 				case CtgMoveAnnotation::OnlyMove:
-					winFactor += MAX_WEIGHT;
+					winFactor += m.green() ? MAX_WEIGHT : 0;
 					break;
 
 				default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
@@ -387,7 +406,7 @@ namespace
 				if (lossFactor == MAX_WEIGHT)
 					return MIN_WEIGHT;
 
-				return (win * winFactor - loss * lossFactor + draw * drawFactor);
+				return ((win + 100) * winFactor - (loss + 100) * lossFactor + (draw + 100) * drawFactor);
 			};
 
 			//Calculate average number of games
@@ -397,7 +416,7 @@ namespace
 
 			avgGames /= size();
 			if (avgGames == 0)
-				avgGames = 1;
+				avgGames = 300;
 
 			//Calculate weight assuming all moves have played the
 			// calculated average number of games, by adding (or removing)
@@ -410,7 +429,7 @@ namespace
 				int64_t games = m.win + m.loss + m.draw;
 				int64_t diff = (avgGames - games) / 3;
 
-				int64_t win = max<int64_t>(m.win + diff, 0);
+				int64_t win  = max<int64_t>(m.win  + diff, 0);
 				int64_t loss = max<int64_t>(m.loss + diff, 0);
 				int64_t draw = max<int64_t>(m.draw + diff, 0);
 
@@ -926,27 +945,6 @@ namespace Polyfish::Book::CTG
 		default:
 			ctgMove.commentary = CtgMoveCommentary::Unknown;
 		}
-
-		//Hacks
-		switch (ctgMove.annotation)
-		{
-		case CtgMoveAnnotation::GoodMove:
-		case CtgMoveAnnotation::ExcellentMove:
-		case CtgMoveAnnotation::InterestingMove:
-			if (ctgMove.recommendation == CtgMoveRecommendation::RedMove)
-				ctgMove.recommendation = CtgMoveRecommendation::NoPreference;
-			break;
-
-		case CtgMoveAnnotation::BadMove:
-		case CtgMoveAnnotation::DubiousMove:
-		case CtgMoveAnnotation::LosingMove:
-			if (ctgMove.recommendation == CtgMoveRecommendation::GreenMove)
-				ctgMove.recommendation = CtgMoveRecommendation::NoPreference;
-			break;
-
-		default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
-			break;
-		}
 	}
 
 	Move CtgBook::get_pseudo_move(const CtgPositionData& positionData, int moveNum) const
@@ -1177,7 +1175,7 @@ namespace Polyfish::Book::CTG
 		return isOpen;
 	}
 
-	Move CtgBook::probe(const Position& pos, size_t width) const
+	Move CtgBook::probe(const Position& pos, size_t width, bool onlyGreen) const
 	{
 		if (!is_open())
 			return MOVE_NONE;
@@ -1191,6 +1189,17 @@ namespace Polyfish::Book::CTG
 
 		if (ctgMoveList.size() == 0)
 			return MOVE_NONE;
+
+		//Remove red moves and any moves with negative weight
+		ctgMoveList.erase(
+			remove_if(
+				ctgMoveList.begin(),
+				ctgMoveList.end(),
+				[&](const CtgMove& x)
+				{
+					return x.red() || (onlyGreen && !x.green());
+				}),
+			ctgMoveList.end());
 
 		//Sort moves accorging to their weights
 		stable_sort(ctgMoveList.begin(), ctgMoveList.end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });
@@ -1215,10 +1224,11 @@ namespace Polyfish::Book::CTG
 	void CtgBook::show_moves(const Position& pos) const
 	{
 		if (!is_open())
+		{
+			assert(false);
+			cout << "No book loaded" << endl;
 			return;
-
-		stringstream ss;
-		ss << "MOVE" << setw(12) << "WIN" << setw(12) << "DRAW" << setw(12) << "LOSS" << setw(12) << "WEIGHT" << endl;
+		}
 
 		CtgPositionData positionData;
 		if (!decode(pos, positionData))
@@ -1229,22 +1239,25 @@ namespace Polyfish::Book::CTG
 
 		if (ctgMoveList.size() == 0)
 		{
-			sync_cout << "info string No moves found for this position" << sync_endl;
+			cout << "No moves found for this position" << endl;
 			return;
 		}
 
+		stringstream ss;
+		ss << "MOVE      WIN       DRAW      LOSS      WEIGHT" << endl;
+
 		for (const CtgMove& m : ctgMoveList)
 		{
-			ss << UCI::move(m.move(), pos.is_chess960())
-				<< setw(12) << m.win
-				<< setw(12) << m.draw
-				<< setw(12) << m.loss
-				<< setw(12) << m.weight()
-				<< endl;
+			ss << setw(10) << left  << UCI::move(m.move(), pos.is_chess960())
+			   << setw(10) << left  << m.win
+			   << setw(10) << left  << m.draw
+			   << setw(10) << left  << m.loss
+			   << setw(10) << left  << m.weight()
+			   << endl;
 		}
 
-		//Not using info_cout/sync_endl
-		sync_cout << ss.str() << sync_endl;
+		//Not using sync_cout/sync_endl
+		cout << ss.str() << endl;
 	}
 }
 

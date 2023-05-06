@@ -67,7 +67,7 @@ namespace Polyfish::Book
 		virtual bool open(const std::string &filename) = 0;
 		virtual void close() = 0;
 
-		virtual Move probe(const Position& pos, size_t width) const = 0;
+		virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const = 0;
 		virtual void show_moves(const Position& pos) const = 0;
 	};
 
@@ -81,4 +81,4 @@ namespace Polyfish::Book
 
 #endif
 
-#endif // #ifndef POLYGLOT_BOOK_H_INCLUDED
+#endif // #ifndef BOOK_H_INCLUDED

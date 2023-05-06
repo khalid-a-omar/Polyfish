@@ -525,7 +525,7 @@ namespace Polyfish::Book::Polyglot
         return has_data();
     }
 
-    Move PolyglotBook::probe(const Position& pos, size_t width) const
+    Move PolyglotBook::probe(const Position& pos, size_t width, bool /*onlyGreen*/) const
     {
         if (!has_data())
             return MOVE_NONE;
@@ -583,34 +583,33 @@ namespace Polyfish::Book::Polyglot
 
     void PolyglotBook::show_moves(const Position& pos) const
     {
-        stringstream ss;
-
         if (!has_data())
         {
-            ss << "No book loaded";
+            assert(false);
+
+            cout << "No book loaded" << endl;
+            return;
         }
-        else
+
+        vector<PolyglotBookMove> bookMoves;
+        get_moves(pos, bookMoves);
+
+        if (bookMoves.size() == 0)
         {
-            vector<PolyglotBookMove> bookMoves;
-            get_moves(pos, bookMoves);
+            cout << "No moves found for this position" << endl;
+            return;
+        }
 
-            if (bookMoves.size() == 0)
-            {
-                ss << "No moves found for this position";
-            }
-            else
-            {
-                stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
+        stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
 
-                for (size_t i = 0; i < bookMoves.size(); ++i)
-                {
-                    ss
-                        << setw(2) << setfill(' ') << left << (i + 1) << ": "
-                        << setw(5) << setfill(' ') << left << UCI::move(bookMoves[i].move, pos.is_chess960())
-                        << ", count: " << setw(4) << setfill(' ') << left << bookMoves[i].entry.count
-                        << endl;
-                }
-            }
+        stringstream ss;
+        for (size_t i = 0; i < bookMoves.size(); ++i)
+        {
+            ss
+                << setw(2) << setfill(' ') << left << (i + 1) << ": "
+                << setw(5) << setfill(' ') << left << UCI::move(bookMoves[i].move, pos.is_chess960())
+                << ", count: " << setw(4) << setfill(' ') << left << bookMoves[i].entry.count
+                << endl;
         }
 
         cout << ss.str() << endl;

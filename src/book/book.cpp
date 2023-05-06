@@ -88,7 +88,7 @@ namespace Polyfish::Book
         {
             if (books[i] != nullptr && (int)Options[Utility::format_string("Book %d Depth", i + 1)] >= moveNumber)
             {
-                bookMove = books[i]->probe(pos, (size_t)(int)Options[Utility::format_string("Book %d Width", i + 1)]);
+                bookMove = books[i]->probe(pos, (size_t)(int)Options[Utility::format_string("Book %d Width", i + 1)], (bool)Options[Utility::format_string("(CTG) Book %d Only Green", i + 1)]);
                 if (bookMove != MOVE_NONE)
                     break;
             }

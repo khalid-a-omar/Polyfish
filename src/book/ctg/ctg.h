@@ -56,7 +56,7 @@ namespace Polyfish::Book::CTG
 
 		bool is_open() const;
 
-		virtual Move probe(const Position& pos, size_t width) const;
+		virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const;
 
 		virtual void show_moves(const Position& pos) const;
 	};
