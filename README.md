@@ -42,15 +42,22 @@ Polyfish also supports the following UCI options
 
   * #### Book 1 Depth
     The maximum number of moves to play from the book
+	
+  * #### (CTG) Book 1 Only Green
+    This option is only used if the loaded book is a CTG book. When set to ```true```, the engine will only play Green moves from the book (if any). If no green moves found, then no book move is made
+	This option has no effect or use if the loaded book is a Polyglot (BIN) book
     
   * #### CTG/BIN Book 2 File
     Same explaination as **CTG/BIN Book 1 File**, but for the second book
 
   * #### Book 2 Width
-    Same explaination as **BIN Book 1 Width**, but for the second polyglot book
+    Same explaination as **BIN Book 1 Width**, but for the second book
 
   * #### Book 2 Depth
-    Same explaination as **BIN Book 1 Depth**, but for the second polyglot book
+    Same explaination as **BIN Book 1 Depth**, but for the second book
+
+  * #### (CTG) Book 2 Only Green
+    Same explaination as **(CTG) Book 1 Only Green**, but for the second book
 
 
 ## UCI commands
