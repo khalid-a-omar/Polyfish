@@ -314,7 +314,7 @@ namespace
 
 		bool green() const
 		{
-			return    recommendation == CtgMoveRecommendation::GreenMove
+			return    ((int)recommendation & (int)CtgMoveRecommendation::GreenMove)
 				   && annotation     != CtgMoveAnnotation::BadMove
 			       && annotation     != CtgMoveAnnotation::LosingMove
 				   && annotation     != CtgMoveAnnotation::InterestingMove
@@ -323,7 +323,7 @@ namespace
 
 		bool red() const
 		{
-			return recommendation == CtgMoveRecommendation::RedMove;
+			return ((int)recommendation & (int)CtgMoveRecommendation::RedMove);
 		}
 	};
 
@@ -346,19 +346,8 @@ namespace
 				constexpr int64_t drawFactor = 1;
 
 				//Recommendation
-				switch (m.recommendation)
-				{
-				case CtgMoveRecommendation::GreenMove:
-					winFactor += m.green() ? 10 : 0;
-					break;
-
-				case CtgMoveRecommendation::RedMove:
-					lossFactor += 10;
-					break;
-
-				default: //Just to avoid GCC warning: enumeration value 'XXX' not handled in switch
-					break;
-				}
+				winFactor += m.green() ? 10 : 0;
+				lossFactor += m.red() ? 10 : 0;
 
 				//Annotation
 				switch (m.annotation)
@@ -906,45 +895,10 @@ namespace Polyfish::Book::CTG
 		CtgMove& ctgMove = (CtgMove&)stats;
 
 		//Recommendations
-		CtgMoveRecommendation r = (CtgMoveRecommendation)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7];
-		switch (r)
-		{
-		case CtgMoveRecommendation::NoPreference:
-		case CtgMoveRecommendation::RedMove:
-		case CtgMoveRecommendation::GreenMove:
-			ctgMove.recommendation = r;
-			break;
-
-		default:
-			ctgMove.recommendation = CtgMoveRecommendation::Unknown;
-			break;
-		}
+		ctgMove.recommendation = (CtgMoveRecommendation)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7];
 
 		//Commentary
-		CtgMoveCommentary c = (CtgMoveCommentary)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7 + 1];
-		switch (c)
-		{
-		case CtgMoveCommentary::None:
-		case CtgMoveCommentary::Equal:
-		case CtgMoveCommentary::Unclear:
-		case CtgMoveCommentary::EqualPlus:
-		case CtgMoveCommentary::PlusEqual:
-		case CtgMoveCommentary::MinusSlashPlus:
-		case CtgMoveCommentary::PlusSlashMinus:
-		case CtgMoveCommentary::PlusMinus:
-		case CtgMoveCommentary::DevelopmentAdvantage:
-		case CtgMoveCommentary::Initiative:
-		case CtgMoveCommentary::WithAttack:
-		case CtgMoveCommentary::Compensation:
-		case CtgMoveCommentary::Counterplay:
-		case CtgMoveCommentary::Zeitnot:
-		case CtgMoveCommentary::Novelty:
-			ctgMove.commentary = c;
-			break;
-
-		default:
-			ctgMove.commentary = CtgMoveCommentary::Unknown;
-		}
+		ctgMove.commentary = (CtgMoveCommentary)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7 + 1];
 	}
 
 	Move CtgBook::get_pseudo_move(const CtgPositionData& positionData, int moveNum) const
@@ -1016,25 +970,7 @@ namespace Polyfish::Book::CTG
 		ctgMove.toSq = to;
 
 		//Annotation
-		CtgMoveAnnotation ann = (CtgMoveAnnotation)positionData.positionPage[moveNum * 2 + 2];
-		switch (ann)
-		{
-		case CtgMoveAnnotation::None:
-		case CtgMoveAnnotation::GoodMove:
-		case CtgMoveAnnotation::BadMove:
-		case CtgMoveAnnotation::ExcellentMove:
-		case CtgMoveAnnotation::LosingMove:
-		case CtgMoveAnnotation::InterestingMove:
-		case CtgMoveAnnotation::DubiousMove:
-		case CtgMoveAnnotation::OnlyMove:
-		case CtgMoveAnnotation::Zugzwang:
-			ctgMove.annotation = ann;
-			break;
-
-		default:
-			ctgMove.annotation = CtgMoveAnnotation::Unknown;
-			break;
-		}
+		ctgMove.annotation = (CtgMoveAnnotation)positionData.positionPage[moveNum * 2 + 2];
 
 		return true;
 	}
