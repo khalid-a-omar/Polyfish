@@ -39,7 +39,7 @@ namespace Polyfish::Book::CTG
 
 		void get_stats(const CtgPositionData& positionData, CtgMoveStats& stats, bool isMove) const;
 		Move get_pseudo_move(const CtgPositionData& positionData, int moveNum) const;
-		bool get_move(const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const;
+		bool get_move(const Position& pos, const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const;
 		void get_moves(const Position& pos, const CtgPositionData& positionData, CtgMoveList& ctgMoveList) const;
 
 	public:

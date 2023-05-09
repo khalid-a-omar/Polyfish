@@ -273,27 +273,53 @@ namespace
 
 	struct CtgMove : CtgMoveStats
 	{
-		Square fromSq;
-		Square toSq;
+	private:
+		Move      pseudoMove;
+		Move      sfMove;
 
+	public:
 		CtgMoveAnnotation     annotation;
 		CtgMoveRecommendation recommendation;
 		CtgMoveCommentary     commentary;
 
-		Move				  sfMove;
 		int64_t				  moveWeight;
 
 		CtgMove() : CtgMoveStats()
 		{
-			fromSq = SQ_NONE;
-			toSq = SQ_NONE;
+			pseudoMove     = MOVE_NONE;
+			sfMove         = MOVE_NONE;
 
-			annotation = CtgMoveAnnotation::Unknown;
+			annotation     = CtgMoveAnnotation::Unknown;
 			recommendation = CtgMoveRecommendation::Unknown;
-			commentary = CtgMoveCommentary::Unknown;
+			commentary     = CtgMoveCommentary::Unknown;
 
-			sfMove = MOVE_NONE;
-			moveWeight = numeric_limits<int64_t>::min();
+			moveWeight     = numeric_limits<int64_t>::min();
+		}
+
+		void set_from_to(const Position& pos, Square from, Square to)
+		{
+			PieceType promotionPiece = NO_PIECE_TYPE;
+
+			//Special handling of castling moves : SF encodes castling as KxR, while CTG encodes it as King moving in the direction of the rook by two steps
+			//Special handling of promotion moves: This CTG implementation does not support underpromotion
+			if (from == SQ_E1 && to == SQ_G1 && pos.piece_on(from) == W_KING && pos.piece_on(SQ_H1) == W_ROOK && pos.can_castle(WHITE_OO))
+				to = SQ_H1;
+			else if (from == SQ_E8 && to == SQ_G8 && pos.piece_on(from) == B_KING && pos.piece_on(SQ_H8) == B_ROOK && pos.can_castle(BLACK_OO))
+				to = SQ_H8;
+			else if (from == SQ_E1 && to == SQ_C1 && pos.piece_on(from) == W_KING && pos.piece_on(SQ_A1) == W_ROOK && pos.can_castle(WHITE_OOO))
+				to = SQ_A1;
+			else if (from == SQ_E8 && to == SQ_C8 && pos.piece_on(from) == B_KING && pos.piece_on(SQ_A8) == B_ROOK && pos.can_castle(BLACK_OOO))
+				to = SQ_A8;
+			else if (((rank_of(from) == RANK_7 && rank_of(to) == RANK_8) || (rank_of(from) == RANK_2 && rank_of(to) == RANK_1)) && type_of(pos.piece_on(from)) == PAWN)
+				promotionPiece = QUEEN;
+
+			pseudoMove = promotionPiece == NO_PIECE_TYPE ? make_move(from, to) : make<PROMOTION>(from, to, promotionPiece);
+		}
+
+		Move pseudo_move() const
+		{
+			assert(pseudoMove != MOVE_NONE);
+			return pseudoMove;
 		}
 
 		Move set_sf_move(Move m)
@@ -301,8 +327,9 @@ namespace
 			return sfMove = m;
 		}
 
-		Move move() const
+		Move sf_move() const
 		{
+			assert(sfMove != MOVE_NONE);
 			return sfMove;
 		}
 
@@ -575,7 +602,7 @@ namespace Polyfish::Book::CTG
 
 		Square ksq = pos.square<KING>(WHITE);
 
-		return rank_of(ksq) <= RANK_4;
+		return file_of(ksq) <= FILE_D;
 	}
 
 	void CtgBook::flip_board(const Position& pos, CtgPositionData& positionData) const
@@ -944,30 +971,29 @@ namespace Polyfish::Book::CTG
 		return MOVE_NONE;
 	}
 
-	bool CtgBook::get_move(const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const
+	bool CtgBook::get_move(const Position& pos, const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const
 	{
 		Move m = get_pseudo_move(positionData, moveNum);
 		if (m == MOVE_NONE)
 			return false;
 
 		Square from = from_sq(m);
-		Square to = to_sq(m);
+		Square to   = to_sq(m);
 
 		if (positionData.invert)
 		{
 			from = flip_rank(from);
-			to = flip_rank(to);
+			to   = flip_rank(to);
 		}
 
 		if (positionData.flip)
 		{
 			from = flip_file(from);
-			to = flip_file(to);
+			to   = flip_file(to);
 		}
 
-		//Fill the CTG move
-		ctgMove.fromSq = from;
-		ctgMove.toSq = to;
+		//Assign
+		ctgMove.set_from_to(pos, from, to);
 
 		//Annotation
 		ctgMove.annotation = (CtgMoveAnnotation)positionData.positionPage[moveNum * 2 + 2];
@@ -978,7 +1004,12 @@ namespace Polyfish::Book::CTG
 	void CtgBook::get_moves(const Position& pos, const CtgPositionData& positionData, CtgMoveList& ctgMoveList) const
 	{
 		//Get legal moves for cross checking later
-		MoveList legalMoves = MoveList<LEGAL>(pos);
+		MoveList legalMoves = MoveList<LEGAL>(pos);	
+
+		//Position object to be used to play the moves
+		StateInfo si[2];
+		Position p;
+		p.set(pos.fen(), pos.is_chess960(), &si[0], pos.this_thread());	
 
 		//Read position statistics
 		get_stats(positionData, ctgMoveList.positionStats, false);
@@ -987,38 +1018,36 @@ namespace Polyfish::Book::CTG
 		for (int i = 0; i < movesCount; ++i)
 		{
 			CtgMove ctgMove;
-			if (get_move(positionData, i, ctgMove))
+			if (get_move(pos, positionData, i, ctgMove))
 			{
-				Move move = make_move(ctgMove.fromSq, ctgMove.toSq);
+				[[maybe_unused]] bool matchFound = false;
 				for (const auto& m : legalMoves)
 				{
-					if (move == (Move(m) ^ type_of(m)))
+					if (ctgMove.pseudo_move() == (m.move ^ type_of(m.move)))
 					{
-						//Play the move to get its statistics
-						StateInfo si[2];
-
-						Position p;
-						p.set(pos.fen(), pos.is_chess960(), &si[0], pos.this_thread());
-						p.do_move(m, si[1]);
-
-						CtgPositionData pd;
-						if (!decode(p, pd))
-						{
-							assert(false);
-							break;
-						}
+						matchFound = true;
 
 						//Assign the move
-						ctgMove.set_sf_move(m);
+						ctgMove.set_sf_move(m.move);
 
-						//Get stats and add to list
-						get_stats(pd, ctgMove, true);
+						//Play the move
+						p.do_move(ctgMove.sf_move(), si[1]);
 
+						//Decode and get move info from the new position
+						CtgPositionData pd;
+						if (decode(p, pd))
+							get_stats(pd, ctgMove, true);
+
+						//Undo move
+						p.undo_move(ctgMove.sf_move());
+
+						//Add to list
 						ctgMoveList.push_back(ctgMove);
-
 						break;
 					}
 				}
+
+				assert(matchFound);
 			}
 		}
 
@@ -1154,42 +1183,50 @@ namespace Polyfish::Book::CTG
 			selectedMoveIndex = (randomEngine() - randomEngine.min()) % ctgMoveList.size();
 		}
 
-		return ctgMoveList[selectedMoveIndex].move();
+		return ctgMoveList[selectedMoveIndex].sf_move();
 	}
 
 	void CtgBook::show_moves(const Position& pos) const
 	{
+		stringstream ss;
+
 		if (!is_open())
 		{
 			assert(false);
-			cout << "No book loaded" << endl;
-			return;
+			ss << "No book loaded" << endl;
 		}
-
-		CtgPositionData positionData;
-		if (!decode(pos, positionData))
-			return;
-
-		CtgMoveList ctgMoveList;
-		get_moves(pos, positionData, ctgMoveList);
-
-		if (ctgMoveList.size() == 0)
+		else
 		{
-			cout << "No moves found for this position" << endl;
-			return;
-		}
+			CtgPositionData positionData;
+			if (!decode(pos, positionData))
+			{
+				ss << "Position not found in book" << endl;
+			}
+			else
+			{
+				CtgMoveList ctgMoveList;
+				get_moves(pos, positionData, ctgMoveList);
 
-		stringstream ss;
-		ss << "MOVE      WIN       DRAW      LOSS      WEIGHT" << endl;
+				if (ctgMoveList.size() == 0)
+				{
+					ss << "No moves found for this position" << endl;
+				}
+				else
+				{
+					ss << "MOVE      WIN       DRAW      LOSS      WEIGHT" << endl;
 
-		for (const CtgMove& m : ctgMoveList)
-		{
-			ss << setw(10) << left  << UCI::move(m.move(), pos.is_chess960())
-			   << setw(10) << left  << m.win
-			   << setw(10) << left  << m.draw
-			   << setw(10) << left  << m.loss
-			   << setw(10) << left  << m.weight()
-			   << endl;
+					for (const CtgMove& m : ctgMoveList)
+					{
+						ss
+							<< setw(10) << left << UCI::move(m.sf_move(), pos.is_chess960())
+							<< setw(10) << left << m.win
+							<< setw(10) << left << m.draw
+							<< setw(10) << left << m.loss
+							<< setw(10) << left << m.weight()
+							<< endl;
+					}
+				}
+			}
 		}
 
 		//Not using sync_cout/sync_endl
