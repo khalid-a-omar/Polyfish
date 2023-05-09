@@ -68,57 +68,73 @@ Polyfish also supports the following UCI commands
   * #### book
     This command causes the engine to show available moves and associated information from the currently configured books
 	```
-	position startpos
-	poly
+	Polyfish 230509 by Khalid Omar
 
-	 +---+---+---+---+---+---+---+---+
-	 | r | n | b | q | k | b | n | r | 8
-	 +---+---+---+---+---+---+---+---+
-	 | p | p | p | p | p | p | p | p | 7
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 6
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 5
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 4
-	 +---+---+---+---+---+---+---+---+
-	 |   |   |   |   |   |   |   |   | 3
-	 +---+---+---+---+---+---+---+---+
-	 | P | P | P | P | P | P | P | P | 2
-	 +---+---+---+---+---+---+---+---+
-	 | R | N | B | Q | K | B | N | R | 1
-	 +---+---+---+---+---+---+---+---+
-	   a   b   c   d   e   f   g   h
-
-	Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	Key: 8F8F01D4562F59FB
-	Checkers:
-
-	Polyglot book 1: MyNarrowBook.bin
-	1 : e2e4 , count: 8822
-	2 : d2d4 , count: 6644
-
-	Polyglot book 2: MyWideBook.bin
-	1 : e2e4 , count: 9768
-	2 : d2d4 , count: 5347
-	3 : g1f3 , count: 1034
-	4 : c2c4 , count: 965
-	5 : b2b3 , count: 99
-	6 : f2f4 , count: 94
-	7 : g2g3 , count: 76
-	8 : b2b4 , count: 43
-	9 : e2e3 , count: 32
-	10: b1c3 , count: 32
-	11: d2d3 , count: 13
-	12: c2c3 , count: 12
-	13: a2a3 , count: 10
-	14: g2g4 , count: 9
-	15: h2h3 , count: 3
-	16: h2h4 , count: 3
-	17: a2a4 , count: 1
-	18: g1h3 , count: 1
-	19: b1a3 , count: 1
-	20: f2f3 , count: 1
+    setoption name CTG/BIN Book 1 File value "C:\Path\To\Book.ctg"
+    info string CTG Book [C:\Path\To\Book.ctg] opened successfully
+    
+    setoption name CTG/BIN Book 2 File value C:\Your\Polyglot\Book.bin
+    info string BIN Book [C:\Your\Polyglot\Book.bin] opened successfully
+    
+    position startpos
+    book
+    
+     +---+---+---+---+---+---+---+---+
+     | r | n | b | q | k | b | n | r | 8
+     +---+---+---+---+---+---+---+---+
+     | p | p | p | p | p | p | p | p | 7
+     +---+---+---+---+---+---+---+---+
+     |   |   |   |   |   |   |   |   | 6
+     +---+---+---+---+---+---+---+---+
+     |   |   |   |   |   |   |   |   | 5
+     +---+---+---+---+---+---+---+---+
+     |   |   |   |   |   |   |   |   | 4
+     +---+---+---+---+---+---+---+---+
+     |   |   |   |   |   |   |   |   | 3
+     +---+---+---+---+---+---+---+---+
+     | P | P | P | P | P | P | P | P | 2
+     +---+---+---+---+---+---+---+---+
+     | R | N | B | Q | K | B | N | R | 1
+     +---+---+---+---+---+---+---+---+
+       a   b   c   d   e   f   g   h
+    
+    Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+    Key: 8F8F01D4562F59FB
+    Checkers:
+    
+    Book 1 (CTG): "C:\Path\To\Book.ctg"
+    MOVE      WIN       DRAW      LOSS      WEIGHT
+    e2e4      60307     70564     43371     100
+    d2d4      52092     68959     35850     68
+    c2c4      10857     13165     6751      54
+    g1f3      13616     18556     9581      44
+    b2b3      667       426       513       -38
+    g2g3      760       837       572       -38
+    f2f4      277       210       326       -39
+    d2d3      29        20        29        -100
+    e2e3      74        46        79        -100
+    c2c3      18        13        14        -100
+    a2a3      52        24        51        -100
+    h2h3      4         1         2         -100
+    b1c3      72        64        85        -100
+    b2b4      59        38        54        -100
+    a2a4      2         1         2         -100
+    g2g4      19        10        17        -100
+    g1h3      9         0         1         -100
+    h2h4      10        0         5         -100
+    b1a3      3         0         1         -100
+    f2f3      4         2         2         -100
+    
+    Book 2 (BIN): C:\Your\Polyglot\Book.bin
+    1 : e2e4 , count: 514
+    2 : d2d4 , count: 164
+    3 : c2c4 , count: 78
+    4 : g1f3 , count: 56
+    5 : b1c3 , count: 6
+    6 : e2e3 , count: 4
+    7 : g2g3 , count: 4
+    8 : d2d3 , count: 2
+    9 : b2b3 , count: 2
 	```
 
 ## Note about CTG books:
