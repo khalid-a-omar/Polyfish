@@ -156,7 +156,7 @@ You can force the engine to only pick and play Green moves from your configured 
 <br/><br/>
 
 - **<ins>If my CTG book has more than one Green move for a given position, which move will be played?</ins>**<br/>
-The move selection from CTG books and BIN books depends on the attributes (properties and statistics) associated with the moves in question. Such attributes are the WDL game count (Win, Draw, and Loss) as well as move recommendations (Green or Red) and commentary (!, !!, !?, ?, ?!, ??, only move, Zugzwang) which are stored in the CTG book (note that BIN books only have number of games without WDL information).
+The move selection from CTG books and BIN books depends on the attributes (properties and statistics) associated with the moves in question. Such attributes are the WDL game count (Win, Draw, and Loss) as well as move recommendations (Green or Red) and commentary (!, !!, !?, ?, ?!, ??, only move, Zugzwang) which are stored in the CTG book (note that BIN books only have number of games without WDL statistics, recommendations, commentary, or annotations).
 <br/><br/>Polyfish uses all available move attributes depending on the book type to calculate a **Weight** which indicates how good or bad the move is. The higher the weight, the better the move.
 <br/><br/>After calculating move weights, the engine selects one of the top **N** moves randomly. The value of **N** can be configured using the UCI option ```Book 1 Width``` and ```Book 2 Width```
 <br/><br/>
