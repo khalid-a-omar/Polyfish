@@ -1,13 +1,7 @@
 ## Overview
 **Polyfish** is a UCI chess engine based on [Stockfish](https://github.com/official-stockfish). It is identical to Stockfish with the added capability of handling [Polyglot](https://web.archive.org/web/20191216195456/http://hardy.uhasselt.be/Toga/book_format.html) and [CTG](https://www.chessprogramming.org/CTG) book.
 
-**Polyfish** supports two polyglot BIN books at the same time. The second book is only probed if the first book has no moves for the given position. The engine starts searching only if no move is found in either the first book or the second book.
-
-**Polyfish** also supports CTG book format, which is **C**hessBase Opening **T**ree of **G**ames, used natively by ChessBase product family. The code and logic to read CTG in **Polyfish** is based on the following resources:
-* [remoteglot](https://github.com/madnight/remoteglot)
-* [jja](https://git.sr.ht/~alip/jja)
-* [ctgexporter](https://github.com/sshivaji/ctgexporter)
-* [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
+**Polyfish** supports two books at the same time, one could configure two CTG books, two BIN books, or one CTG and one BIN in either order. The second book is only probed if the first book has no moves for the given position. The engine starts searching only if no move is found in either the first book or the second book.
 
 #### Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
 #### Read [Questions and Answers about Polyfish book support](https://github.com/khalid-a-omar/Polyfish#questions-and-answers)
@@ -137,7 +131,11 @@ Polyfish also supports the following UCI commands
 	```
 
 ## Note about CTG books:
-CTG book format specification is not available to the public from Chessbase. The code that reads and parses CTG books is based on the reverse engineered book specification published on [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319) as well as the other resources mentioned earlier.
+<ins>**C**</ins>hessBase Opening <ins>**T**</ins>ree of <ins>**G**</ins>ames (CTG), is the natibe book format used by all ChessBase products. The specification is not made available to the public from Chessbase. Instead, **Polyfish** relied on the following public resources:
+* [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
+* [remoteglot](https://github.com/madnight/remoteglot)
+* [jja](https://git.sr.ht/~alip/jja)
+* [ctgexporter](https://github.com/sshivaji/ctgexporter)
 
 The reverse engineered specs are good enough to proble the book for moves, but it does not provide the same functionality as Chessbase own products. The following is a list of known limitations of **Polyfish**'s CTG book implementation:
 - Does not support underpromotion, which means all promotion moves are assumed to be to a Queen
