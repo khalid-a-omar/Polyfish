@@ -164,7 +164,7 @@ Configure the ```Book 1 Width``` (or ```Book 2 Width```) to the value **1** and 
 <br/><br/>
 
 - **<ins>What move will be played if my CTG book has no Green moves for a given position?</ins>**<br/>
-If no Green moves are found in the configured CTG book,  then engine will check the value of the UCI option ```(CTG) Book 1 Only Green``` (or ```(CTG) Book 2 Only Green```) in order to decide if it is allowed to play a non Green move. If not allowed then no move is played and the next book is checked (if configured).
+If no Green moves are found in the configured CTG book,  then engine will check the value of the UCI option ```(CTG) Book 1 Only Green``` (or ```(CTG) Book 2 Only Green```) in order to decide if it is allowed to play a non Green move. If not allowed then no move is played and the next book is checked, if configured, or the engine will start thinking.
 <br/><br/>If it is allowed to play a non Green move, then the engine will calculate the weights of available moves (as described earlier) and play one of the top weight moves depending the configured value of ```Book 1 Width``` or (```Book 2 Width```)
 <br/><br/>
 
