@@ -742,12 +742,12 @@ namespace Polyfish::Book::CTG
 		}
 
 		bool epAny = false;
-		[[maybe_unused]] Rank epRank = RANK_NB;
+		[[maybe_unused]] File epFile = FILE_NB;
 		if (positionData.epSquare != SQ_NONE)
 		{
-			epRank = rank_of(positionData.epSquare);
+			epFile = file_of(positionData.epSquare);
 
-			if ((epRank > RANK_1 && positionData.board[3 * 8 + epRank - 1] == 'P') || (epRank < RANK_7 && positionData.board[3 * 8 + epRank + 1] == 'P'))
+			if ((epFile > FILE_A && positionData.board[3 * 8 + epFile - 1] == 'P') || (epFile < FILE_G && positionData.board[3 * 8 + epFile + 1] == 'P'))
 			{
 				epAny = true;
 			}
@@ -779,9 +779,9 @@ namespace Polyfish::Book::CTG
 		// En passant
 		if (epAny)
 		{
-			put_bit(epRank & 0x04);
-			put_bit(epRank & 0x02);
-			put_bit(epRank & 0x01);
+			put_bit(epFile & 0x04);
+			put_bit(epFile & 0x02);
+			put_bit(epFile & 0x01);
 		}
 
 		//Castling rights
@@ -1009,7 +1009,7 @@ namespace Polyfish::Book::CTG
 		//Position object to be used to play the moves
 		StateInfo si[2];
 		Position p;
-		p.set(pos.fen(), pos.is_chess960(), &si[0], pos.this_thread());	
+		p.set(pos.fen(), pos.is_chess960(), &si[0], pos.this_thread());
 
 		//Read position statistics
 		get_stats(positionData, ctgMoveList.positionStats, false);
@@ -1020,13 +1020,10 @@ namespace Polyfish::Book::CTG
 			CtgMove ctgMove;
 			if (get_move(pos, positionData, i, ctgMove))
 			{
-				[[maybe_unused]] bool matchFound = false;
 				for (const auto& m : legalMoves)
 				{
 					if (ctgMove.pseudo_move() == (m.move ^ type_of(m.move)))
 					{
-						matchFound = true;
-
 						//Assign the move
 						ctgMove.set_sf_move(m.move);
 
@@ -1047,7 +1044,7 @@ namespace Polyfish::Book::CTG
 					}
 				}
 
-				assert(matchFound);
+				assert(ctgMove.sf_move() != MOVE_NONE);
 			}
 		}
 
@@ -1162,7 +1159,7 @@ namespace Polyfish::Book::CTG
 				ctgMoveList.end(),
 				[&](const CtgMove& x)
 				{
-					return x.red() || (onlyGreen && !x.green());
+					return x.red() || (onlyGreen && !x.green()) || x.weight() < 0;
 				}),
 			ctgMoveList.end());
 
