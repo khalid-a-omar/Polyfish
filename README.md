@@ -160,7 +160,7 @@ The move selection from CTG books and BIN books depends on the attributes (prope
 <br/><br/>
 
 - **<ins>How do I make the engine play the best Green move available?</ins>**<br/>
-Configure the ```Book 1 Width``` (or ```Book 2 Width```) to the value **1** and make sure to enable the option ```(CTG) Book 1 Only Green``` (or **(CTG) Book 2 Only Green**)
+Configure the ```Book 1 Width``` (or ```Book 2 Width```) to the value **1** and make sure to enable the option ```(CTG) Book 1 Only Green``` (or ```(CTG) Book 2 Only Green```)
 <br/><br/>
 
 - **<ins>What move will be played if my CTG book has no Green moves for a given position in my CTG book?</ins>**<br/>
