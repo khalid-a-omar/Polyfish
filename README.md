@@ -10,7 +10,7 @@
 * [CTG Specifications](https://web.archive.org/web/20210129162445/https://rybkaforum.net/cgi-bin/rybkaforum/topic_show.pl?tid=2319)
 
 #### Read [Note about CTG books](https://github.com/khalid-a-omar/Polyfish#note-about-ctg-books)
-#### Read [Questions and Answers about Polyfish book support](https://github.com/khalid-a-omar/Polyfish/edit/main/README.md#questions-and-answers)
+#### Read [Questions and Answers about Polyfish book support](https://github.com/khalid-a-omar/Polyfish#questions-and-answers)
 
 ## Files
 
