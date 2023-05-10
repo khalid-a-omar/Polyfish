@@ -151,24 +151,24 @@ Despite the fact that Polyfish can read and play from CTG Book, it is not going 
 
 ## Questions and Answers
 
-- **How do I force my CTG book to play only Green moves?**<br/>
+- **<ins>How do I force my CTG book to play only Green moves?</ins>**<br/>
 You can force the engine to only pick and play Green moves from your configured CTG book by enabling the option ```CTG) Book 1 Only Green``` or ```(CTG) Book 2 Only Green``` (enabled by default)
-<br/>
+<br/><br/>
 
-- **If my CTG book has more than one Green move for a given position, which move will be played?**<br/>
+- **<ins>If my CTG book has more than one Green move for a given position, which move will be played?</ins>**<br/>
 The move selection from CTG books and BIN books depends on the attributes (properties and statistics) associated with the moves in question. Such attributes are the WDL game count (Win, Draw, and Loss) as well as move recommendations (Green or Red) and commentary (!, !!, !?, ?, ?!, ??, only move, Zugzwang) which are stored in the CTG book (note that BIN books only have number of games without WDL information).
 <br/><br/>Polyfish uses all available move attributes depending on the book type to calculate a **Weight** which indicates how good or bad the move is. The higher the weight, the better the move.
 <br/><br/>After calculating move weights, the engine selects one of the top **N** moves randomly. The value of **N** can be configured using the UCI option ```Book 1 Width``` and ```Book 2 Width```
-<br/>
+<br/><br/>
 
-- **How do I make the engine play the best Green move available?**<br/>
+- **<ins>How do I make the engine play the best Green move available?</ins>**<br/>
 Configure the ```Book 1 Width``` (or ```Book 2 Width```) to the value **1** and make sure to enable the option ```(CTG) Book 1 Only Green``` (or **(CTG) Book 2 Only Green**)
-<br/>
+<br/><br/>
 
-- **What move will be played if my CTG book has no Green moves for a given position in my CTG book?**<br/>
+- **<ins>What move will be played if my CTG book has no Green moves for a given position in my CTG book?</ins>**<br/>
 If no Green moves are found in the configured CTG book,  then engine will check the value of the UCI option ```(CTG) Book 1 Only Green``` (or ```(CTG) Book 2 Only Green```) in order to decide if it is allowed to play a non Green move. If not allowed then no move is played and the next book is checked (if configured).
 <br/><br/>If it is allowed to play a non Green move, then the engine will calculate the weights of available moves (as described earlier) and play one of the top weight moves depending the configured value of ```Book 1 Width``` or (```Book 2 Width```)
-<br/>
+<br/><br/>
 
-- **What effect does the options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green<``` have on my Polyglot (BIN) book?**<br/>
+- **<ins>What effect does the options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green<``` have on my Polyglot (BIN) book?</ins>**<br/>
 The options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green``` do not have any effect on BIN books so it does not matter if they are checked (true) or unchecked (false). Use these two options only for CTG books
