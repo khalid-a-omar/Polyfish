@@ -14,3 +14,10 @@
 /src/.depend
 /Polyfish_x86-64-sse41-popcnt.exe
 /Tools/_ssh.bat
+*.lto_wrapper_args
+*.0
+*.s
+*.gcda
+*.out
+*.ltrans_args
+*.res
