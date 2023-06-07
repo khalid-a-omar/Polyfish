@@ -6,7 +6,7 @@ SETLOCAL EnableExtensions
 
 SET "MSYS_BIN=C:\msys64\usr\bin"
 SET "MINGW_PATH=C:\msys64\mingw64"
-SET "SDE_EXE=C:/SDE/sde-external-9.14.0-2022-10-25-win/sde.exe"
+SET "SDE_EXE=C:/SDE/sde-external-9.21.1-2023-04-24-win/sde.exe"
 SET "_7Z=C:\Program Files\7-Zip\7z.exe"
 
 :Main

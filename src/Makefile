@@ -52,7 +52,7 @@ BINDIR = $(PREFIX)/bin
 ifeq ($(SDE_PATH),)
 	PGOBENCH = $(WINE_PATH) ./$(EXE) bench
 else
-	PGOBENCH = $(SDE_PATH) -future -- $(WINE_PATH) ./$(EXE) bench
+	PGOBENCH = $(SDE_PATH) -icx -- $(WINE_PATH) ./$(EXE) bench
 endif
 
 ### Source and object files
