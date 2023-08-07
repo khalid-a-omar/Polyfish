@@ -82,6 +82,7 @@ namespace Polyfish::Eval::NNUE {
 
   }  // namespace Detail
 
+
   // Initialize the evaluation function parameters
   static void initialize() {
 
@@ -137,8 +138,7 @@ namespace Polyfish::Eval::NNUE {
   }
 
   void hint_common_parent_position(const Position& pos) {
-    if (Eval::useNNUE)
-        featureTransformer->hint_common_access(pos);
+    featureTransformer->hint_common_access(pos);
   }
 
   // Evaluation function. Perform differential calculation.
@@ -188,7 +188,6 @@ namespace Polyfish::Eval::NNUE {
 
     // We manually align the arrays on the stack because with gcc < 9.3
     // overaligning stack variables with alignas() doesn't work correctly.
-
     constexpr uint64_t alignment = CacheLineSize;
 
 #if defined(ALIGNAS_ON_STACK_VARIABLES_BROKEN)
@@ -225,7 +224,7 @@ namespace Polyfish::Eval::NNUE {
 
     buffer[0] = (v < 0 ? '-' : v > 0 ? '+' : ' ');
 
-    int cp = std::abs(100 * v / UCI::NormalizeToPawnValue);
+    int cp = std::abs(UCI::to_cp(v));
     if (cp >= 10000)
     {
         buffer[1] = '0' + cp / 10000; cp %= 10000;
@@ -250,21 +249,21 @@ namespace Polyfish::Eval::NNUE {
   }
 
 
-  // format_cp_aligned_dot() converts a Value into (centi)pawns, always keeping two decimals.
+  // format_cp_aligned_dot() converts a Value into pawns, always keeping two decimals
   static void format_cp_aligned_dot(Value v, std::stringstream &stream) {
-    const double cp = 1.0 * std::abs(int(v)) / UCI::NormalizeToPawnValue;
+  
+    const double pawns = std::abs(0.01 * UCI::to_cp(v));
 
     stream << (v < 0 ? '-' : v > 0 ? '+' : ' ')
            << std::setiosflags(std::ios::fixed)
            << std::setw(6)
            << std::setprecision(2)
-           << cp;
+           << pawns;
   }
 
 
   // trace() returns a string with the value of each piece on a board,
   // and a table for (PSQT, Layers) values bucket by bucket.
-
   std::string trace(Position& pos) {
 
     std::stringstream ss;

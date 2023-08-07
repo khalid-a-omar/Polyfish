@@ -26,7 +26,6 @@
 
 #include "bitboard.h"
 #include "evaluate.h"
-#include "psqt.h"
 #include "types.h"
 
 #include "nnue/nnue_accumulator.h"
@@ -40,7 +39,6 @@ namespace Polyfish {
 struct StateInfo {
 
   // Copied when making a move
-  Key    pawnKey;
   Key    materialKey;
   Value  nonPawnMaterial[COLOR_NB];
   int    castlingRights;
@@ -101,7 +99,6 @@ public:
   template<PieceType Pt> int count(Color c) const;
   template<PieceType Pt> int count() const;
   template<PieceType Pt> Square square(Color c) const;
-  bool is_on_semiopen_file(Color c, Square s) const;
 
   // Castling
   CastlingRights castling_rights(Color c) const;
@@ -130,11 +127,6 @@ public:
   Piece moved_piece(Move m) const;
   Piece captured_piece() const;
 
-  // Piece specific
-  bool pawn_passed(Color c, Square s) const;
-  bool opposite_bishops() const;
-  int  pawns_on_same_color_squares(Color c, Square s) const;
-
   // Doing and undoing moves
   void do_move(Move m, StateInfo& newSt);
   void do_move(Move m, StateInfo& newSt, bool givesCheck);
@@ -150,7 +142,6 @@ public:
   Key key() const;
   Key key_after(Move m) const;
   Key material_key() const;
-  Key pawn_key() const;
 
   // Other properties of the position
   Color side_to_move() const;
@@ -161,8 +152,6 @@ public:
   bool has_game_cycle(int ply) const;
   bool has_repeated() const;
   int rule50_count() const;
-  Score psq_score() const;
-  Value psq_eg_stm() const;
   Value non_pawn_material(Color c) const;
   Value non_pawn_material() const;
 
@@ -201,7 +190,6 @@ private:
   StateInfo* st;
   int gamePly;
   Color sideToMove;
-  Score psq;
   bool chess960;
 };
 
@@ -257,10 +245,6 @@ template<PieceType Pt> inline Square Position::square(Color c) const {
 
 inline Square Position::ep_square() const {
   return st->epSquare;
-}
-
-inline bool Position::is_on_semiopen_file(Color c, Square s) const {
-  return !(pieces(c, PAWN) & file_bb(s));
 }
 
 inline bool Position::can_castle(CastlingRights cr) const {
@@ -319,14 +303,6 @@ inline Bitboard Position::check_squares(PieceType pt) const {
   return st->checkSquares[pt];
 }
 
-inline bool Position::pawn_passed(Color c, Square s) const {
-  return !(pieces(~c, PAWN) & passed_pawn_span(c, s));
-}
-
-inline int Position::pawns_on_same_color_squares(Color c, Square s) const {
-  return popcount(pieces(c, PAWN) & ((DarkSquares & s) ? DarkSquares : ~DarkSquares));
-}
-
 inline Key Position::key() const {
   return adjust_key50<false>(st->key);
 }
@@ -338,20 +314,8 @@ inline Key Position::adjust_key50(Key k) const
       ? k : k ^ make_key((st->rule50 - (14 - AfterMove)) / 8);
 }
 
-inline Key Position::pawn_key() const {
-  return st->pawnKey;
-}
-
 inline Key Position::material_key() const {
   return st->materialKey;
-}
-
-inline Score Position::psq_score() const {
-  return psq;
-}
-
-inline Value Position::psq_eg_stm() const {
-  return (sideToMove == WHITE ? 1 : -1) * eg_value(psq);
 }
 
 inline Value Position::non_pawn_material(Color c) const {
@@ -368,12 +332,6 @@ inline int Position::game_ply() const {
 
 inline int Position::rule50_count() const {
   return st->rule50;
-}
-
-inline bool Position::opposite_bishops() const {
-  return   count<BISHOP>(WHITE) == 1
-        && count<BISHOP>(BLACK) == 1
-        && opposite_colors(square<BISHOP>(WHITE), square<BISHOP>(BLACK));
 }
 
 inline bool Position::is_chess960() const {
@@ -409,7 +367,6 @@ inline void Position::put_piece(Piece pc, Square s) {
   byColorBB[color_of(pc)] |= s;
   pieceCount[pc]++;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]++;
-  psq += PSQT::psq[pc][s];
 }
 
 inline void Position::remove_piece(Square s) {
@@ -421,7 +378,6 @@ inline void Position::remove_piece(Square s) {
   board[s] = NO_PIECE;
   pieceCount[pc]--;
   pieceCount[make_piece(color_of(pc), ALL_PIECES)]--;
-  psq -= PSQT::psq[pc][s];
 }
 
 inline void Position::move_piece(Square from, Square to) {
@@ -433,7 +389,6 @@ inline void Position::move_piece(Square from, Square to) {
   byColorBB[color_of(pc)] ^= fromTo;
   board[from] = NO_PIECE;
   board[to] = pc;
-  psq += PSQT::psq[pc][to] - PSQT::psq[pc][from];
 }
 
 inline void Position::do_move(Move m, StateInfo& newSt) {

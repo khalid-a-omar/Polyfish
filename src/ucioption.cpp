@@ -50,7 +50,6 @@ static void on_book1(const Option& o) { Book::on_book(0, (string)o); }
 static void on_book2(const Option& o) { Book::on_book(1, (string)o); }
 #endif
 static void on_tb_path(const Option& o) { Tablebases::init(o); }
-static void on_use_NNUE(const Option&) { Eval::NNUE::init(); }
 static void on_eval_file(const Option&) { Eval::NNUE::init(); }
 
 /// Our case insensitive less() function as required by UCI protocol
@@ -96,7 +95,6 @@ void init(OptionsMap& o) {
   o["SyzygyProbeDepth"]      << Option(1, 1, 100);
   o["Syzygy50MoveRule"]      << Option(true);
   o["SyzygyProbeLimit"]      << Option(7, 0, 7);
-  o["Use NNUE"]              << Option(true, on_use_NNUE);
   o["EvalFile"]              << Option(EvalFileDefaultName, on_eval_file);
 }
 
