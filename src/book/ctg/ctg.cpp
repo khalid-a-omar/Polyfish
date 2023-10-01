@@ -1163,6 +1163,10 @@ namespace Polyfish::Book::CTG
 				}),
 			ctgMoveList.end());
 
+		//Check move list again after removing unwanted moves
+		if (ctgMoveList.size() == 0)
+			return MOVE_NONE;
+
 		//Sort moves accorging to their weights
 		stable_sort(ctgMoveList.begin(), ctgMoveList.end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });
 
