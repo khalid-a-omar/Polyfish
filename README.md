@@ -150,7 +150,7 @@ Despite the fact that Polyfish can read and play from CTG Book, it is not going 
 ## Questions and Answers
 
 - **<ins>How do I force my CTG book to play only Green moves?</ins>**<br/>
-You can force the engine to only pick and play Green moves from your configured CTG book by enabling the option ```CTG) Book 1 Only Green``` or ```(CTG) Book 2 Only Green``` (enabled by default)
+You can force the engine to only pick and play Green moves from your configured CTG book by enabling the option ```(CTG) Book 1 Only Green``` or ```(CTG) Book 2 Only Green``` (enabled by default)
 <br/><br/>
 
 - **<ins>If my CTG book has more than one Green move for a given position, which move will be played?</ins>**<br/>
