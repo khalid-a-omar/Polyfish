@@ -18,19 +18,26 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
+#include <cstddef>
+#include <iosfwd>
+#include <istream>
+#include <map>
 #include <ostream>
 #include <sstream>
+#include <string>
 
 #include "evaluate.h"
 #include "misc.h"
 #include "search.h"
+#include "syzygy/tbprobe.h"
 #include "thread.h"
 #include "tt.h"
+#include "types.h"
 #include "uci.h"
 #if defined(POLYFISH)
 #include "book/book.h"
 #endif
-#include "syzygy/tbprobe.h"
 
 using std::string;
 
