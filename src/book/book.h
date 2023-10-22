@@ -53,30 +53,30 @@ namespace Polyfish::Book
         }
     }
 
-	class Book
-	{
-	public:
-		Book() { }
-		virtual ~Book() { }
+    class Book
+    {
+    public:
+        Book() { }
+        virtual ~Book() { }
 
-		Book(const Book&) = delete;
-		Book& operator=(const Book&) = delete;
+        Book(const Book&) = delete;
+        Book& operator=(const Book&) = delete;
 
-		virtual std::string type() const = 0;
+        virtual std::string type() const = 0;
 
-		virtual bool open(const std::string &filename) = 0;
-		virtual void close() = 0;
+        virtual bool open(const std::string& filename) = 0;
+        virtual void close() = 0;
 
-		virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const = 0;
-		virtual void show_moves(const Position& pos) const = 0;
-	};
+        virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const = 0;
+        virtual void show_moves(const Position& pos) const = 0;
+    };
 
-	void init();
-	void finalize();
+    void init();
+    void finalize();
 
-	void on_book(int index, const std::string &filename);
-	Move probe(const Position& pos);
-	void show_moves(const Position& pos);
+    void on_book(int index, const std::string& filename);
+    Move probe(const Position& pos);
+    void show_moves(const Position& pos);
 }
 
 #endif

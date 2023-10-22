@@ -12,7 +12,7 @@ namespace Polyfish::Book
 {
     namespace
     {
-        Book* create_book(const string &filename)
+        Book* create_book(const string& filename)
         {
             size_t extIndex = filename.find_last_of('.');
             if (extIndex == string::npos)
@@ -30,7 +30,7 @@ namespace Polyfish::Book
     }
 
     constexpr size_t NumBooks = 2;
-    Book *books[NumBooks];
+    Book* books[NumBooks];
 
     void init()
     {
@@ -50,7 +50,7 @@ namespace Polyfish::Book
         }
     }
 
-    void on_book(int index, const string &filename)
+    void on_book(int index, const string& filename)
     {
         //Close previous book if any
         delete books[index];
