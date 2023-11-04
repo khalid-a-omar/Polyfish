@@ -29,6 +29,6 @@ class Position;
 
 std::vector<std::string> setup_bench(const Position&, std::istream&);
 
-} // namespace Polyfish
+}  // namespace Polyfish
 
-#endif // #ifndef BENCHMARK_H_INCLUDED
+#endif  // #ifndef BENCHMARK_H_INCLUDED
