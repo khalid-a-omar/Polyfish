@@ -218,4 +218,4 @@ neon_m128_add_dpbusd_epi32x2(int32x4_t& acc, int8x8_t a0, int8x8_t b0, int8x8_t 
 #endif
 }
 
-#endif // POLYFISH_SIMD_H_INCLUDED
+#endif  // POLYFISH_SIMD_H_INCLUDED
