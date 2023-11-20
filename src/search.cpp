@@ -229,8 +229,8 @@ void MainThread::search() {
                   << UCI::value(rootPos.checkers() ? -VALUE_MATE : VALUE_DRAW) << sync_endl;
     }
     else
-    {
 #if defined(POLYFISH)
+    {
         bool think = true;
         if (!(Limits.infinite || Limits.mate || Limits.depth || Limits.nodes || Limits.perft) && !ponder)
         {
@@ -247,14 +247,16 @@ void MainThread::search() {
 
         if (think)
         {
-        Threads.start_searching();  // start non-main threads
-        Thread::search();           // main thread start searching
+            Threads.start_searching();  // start non-main threads
+            Thread::search();           // main thread start searching
+        }
     }
 #else
+    {
         Threads.start_searching();  // start non-main threads
         Thread::search();           // main thread start searching
-#endif
     }
+#endif
 
     // When we reach the maximum depth, we can arrive here without a raise of
     // Threads.stop. However, if we are pondering or in an infinite search,
@@ -397,8 +399,8 @@ void Thread::search() {
             beta      = std::min(avg + delta, VALUE_INFINITE);
 
             // Adjust optimism based on root move's averageScore (~4 Elo)
-            optimism[us]  = 103 * (avg + 33) / (std::abs(avg + 34) + 119);
-            optimism[~us] = -116 * (avg + 40) / (std::abs(avg + 12) + 123);
+            optimism[us]  = 110 * avg / (std::abs(avg) + 121);
+            optimism[~us] = -optimism[us];
 
             // Start with a small aspiration window and, in the case of a fail
             // high/low, re-search with a bigger window until we don't fail
@@ -1125,6 +1127,12 @@ moves_loop:  // When in check, search starts here
             else if (PvNode && move == ttMove && move == ss->killers[0]
                      && (*contHist[0])[movedPiece][to_sq(move)] >= 4194)
                 extension = 1;
+
+            // Recapture extensions (~1 Elo)
+            else if (PvNode && move == ttMove && to_sq(move) == prevSq
+                     && captureHistory[movedPiece][to_sq(move)][type_of(pos.piece_on(to_sq(move)))]
+                          > 4000)
+                extension = 1;
         }
 
         // Add extension to new depth
@@ -1197,7 +1205,9 @@ moves_loop:  // When in check, search starts here
             // In general we want to cap the LMR depth search at newDepth, but when
             // reduction is negative, we allow this move a limited search extension
             // beyond the first move depth. This may lead to hidden double extensions.
-            Depth d = std::clamp(newDepth - r, 1, newDepth + 1);
+            // To prevent problems when the max value is less than the min value,
+            // std::clamp has been replaced by a more robust implementation.
+            Depth d = std::max(1, std::min(newDepth - r, newDepth + 1));
 
             value = -search<NonPV>(pos, ss + 1, -(alpha + 1), -alpha, d, true);
 
