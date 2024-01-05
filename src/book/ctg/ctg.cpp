@@ -286,8 +286,8 @@ namespace
 
         CtgMove() : CtgMoveStats()
         {
-            pseudoMove = MOVE_NONE;
-            sfMove = MOVE_NONE;
+            pseudoMove = Move::none();
+            sfMove = Move::none();
 
             annotation = CtgMoveAnnotation::Unknown;
             recommendation = CtgMoveRecommendation::Unknown;
@@ -313,12 +313,12 @@ namespace
             else if (((rank_of(from) == RANK_7 && rank_of(to) == RANK_8) || (rank_of(from) == RANK_2 && rank_of(to) == RANK_1)) && type_of(pos.piece_on(from)) == PAWN)
                 promotionPiece = QUEEN;
 
-            pseudoMove = promotionPiece == NO_PIECE_TYPE ? make_move(from, to) : make<PROMOTION>(from, to, promotionPiece);
+            pseudoMove = promotionPiece == NO_PIECE_TYPE ?  Move(from, to) : Move::make<PROMOTION>(from, to, promotionPiece);
         }
 
         Move pseudo_move() const
         {
-            assert(pseudoMove != MOVE_NONE);
+            assert(pseudoMove != Move::none());
             return pseudoMove;
         }
 
@@ -329,7 +329,7 @@ namespace
 
         Move sf_move() const
         {
-            assert(sfMove != MOVE_NONE);
+            assert(sfMove != Move::none());
             return sfMove;
         }
 
@@ -944,7 +944,7 @@ namespace Polyfish::Book::CTG
 
         //Check
         if (index == MoveEncSize)
-            return MOVE_NONE;
+            return Move::none();
 
         //Find/Read the move
         const MoveEnc& moveEnc = moveTable[index];
@@ -961,24 +961,24 @@ namespace Polyfish::Book::CTG
                     Square from = make_square(File(x), Rank(y));
                     Square to = make_square(File((x + 8 + moveEnc.right) % 8), Rank((y + 8 + moveEnc.forward) % 8));
 
-                    return make_move(from, to);
+                    return Move(from, to);
                 }
             }
         }
 
         //Should never get here
         assert(false);
-        return MOVE_NONE;
+        return Move::none();
     }
 
     bool CtgBook::get_move(const Position& pos, const CtgPositionData& positionData, int moveNum, CtgMove& ctgMove) const
     {
         Move m = get_pseudo_move(positionData, moveNum);
-        if (m == MOVE_NONE)
+        if (m == Move::none())
             return false;
 
-        Square from = from_sq(m);
-        Square to = to_sq(m);
+        Square from = m.from_sq();
+        Square to = m.to_sq();
 
         if (positionData.invert)
         {
@@ -1022,10 +1022,10 @@ namespace Polyfish::Book::CTG
             {
                 for (const auto& m : legalMoves)
                 {
-                    if (ctgMove.pseudo_move() == (m.move ^ type_of(m.move)))
+                    if (ctgMove.pseudo_move().raw() == (m.raw() ^ m.type_of()))
                     {
                         //Assign the move
-                        ctgMove.set_sf_move(m.move);
+                        ctgMove.set_sf_move(m);
 
                         //Play the move
                         p.do_move(ctgMove.sf_move(), si[1]);
@@ -1044,7 +1044,7 @@ namespace Polyfish::Book::CTG
                     }
                 }
 
-                assert(ctgMove.sf_move() != MOVE_NONE);
+                assert(ctgMove.sf_move() != Move::none());
             }
         }
 
@@ -1140,17 +1140,17 @@ namespace Polyfish::Book::CTG
     Move CtgBook::probe(const Position& pos, size_t width, bool onlyGreen) const
     {
         if (!is_open())
-            return MOVE_NONE;
+            return Move::none();
 
         CtgPositionData positionData;
         if (!decode(pos, positionData))
-            return MOVE_NONE;
+            return Move::none();
 
         CtgMoveList ctgMoveList;
         get_moves(pos, positionData, ctgMoveList);
 
         if (ctgMoveList.size() == 0)
-            return MOVE_NONE;
+            return Move::none();
 
         //Remove red moves and any moves with negative weight
         ctgMoveList.erase(
@@ -1165,7 +1165,7 @@ namespace Polyfish::Book::CTG
 
         //Check move list again after removing unwanted moves
         if (ctgMoveList.size() == 0)
-            return MOVE_NONE;
+            return Move::none();
 
         //Sort moves accorging to their weights
         stable_sort(ctgMoveList.begin(), ctgMoveList.end(), [](const CtgMove& mv1, const CtgMove& mv2) { return mv1.weight() > mv2.weight(); });

@@ -82,14 +82,14 @@ namespace Polyfish::Book
     Move probe(const Position& pos)
     {
         int moveNumber = 1 + pos.game_ply() / 2;
-        Move bookMove = MOVE_NONE;
+        Move bookMove = Move::none();
 
         for (size_t i = 0; i < NumBooks; ++i)
         {
             if (books[i] != nullptr && (int)Options[Utility::format_string("Book %d Depth", i + 1)] >= moveNumber)
             {
                 bookMove = books[i]->probe(pos, (size_t)(int)Options[Utility::format_string("Book %d Width", i + 1)], (bool)Options[Utility::format_string("(CTG) Book %d Only Green", i + 1)]);
-                if (bookMove != MOVE_NONE)
+                if (bookMove != Move::none())
                     break;
             }
         }

@@ -339,9 +339,9 @@ namespace
         // all other cases, we can directly compare with a Move after having masked
         // out the special Move flags (bit 14-15) that are not supported by Polyglot.
         Move move = Move(e.move);
-        int pt = (move >> 12) & 7;
+        int pt = (move.raw() >> 12) & 7;
         if (pt)
-            move = make<PROMOTION>(from_sq(move), to_sq(move), PieceType(pt + 1));
+            move = Move::make<PROMOTION>(move.from_sq(), move.to_sq(), PieceType(pt + 1));
 
         return move;
     }
@@ -362,7 +362,7 @@ namespace
         Move move;
         PolyglotEntry entry;
 
-        PolyglotBookMove() { move = MOVE_NONE; memset(&entry, 0, sizeof(PolyglotEntry)); }
+        PolyglotBookMove() { move = Move::none(); memset(&entry, 0, sizeof(PolyglotEntry)); }
         PolyglotBookMove(const PolyglotEntry& e, Move m) { memcpy(&entry, &e, sizeof(PolyglotEntry)); move = m; }
     };
 
@@ -450,9 +450,9 @@ namespace Polyfish::Book::Polyglot
             Move move = make_move(e);
             for (const auto& m : MoveList<LEGAL>(pos))
             {
-                if (move == (m.move ^ type_of(m.move)))
+                if (move.raw() == (m.raw() ^ m.type_of()))
                 {
-                    bookMoves.push_back(PolyglotBookMove(e, m.move));
+                    bookMoves.push_back(PolyglotBookMove(e, m));
                 }
             }
         }
@@ -528,13 +528,13 @@ namespace Polyfish::Book::Polyglot
     Move PolyglotBook::probe(const Position& pos, size_t width, bool /*onlyGreen*/) const
     {
         if (!has_data())
-            return MOVE_NONE;
+            return Move::none();
 
         vector<PolyglotBookMove> bookMoves;
         get_moves(pos, bookMoves);
 
         if (!bookMoves.size())
-            return MOVE_NONE;
+            return Move::none();
 
 #if 1
         //Remove any move with REALLY low weight compared to the total weight of all moves
