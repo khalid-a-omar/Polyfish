@@ -264,9 +264,8 @@ namespace Utility
             }
 
             //Read file size
-            DWORD sizeHigh;
-            DWORD sizeLow = GetFileSize(fd, &sizeHigh);
-            if (sizeHigh == 0 && sizeLow == 0)
+            LARGE_INTEGER li{};
+            if(!GetFileSizeEx(fd, &li) || li.QuadPart == 0)
             {
                 CloseHandle(fd);
 
@@ -277,7 +276,7 @@ namespace Utility
             }
 
             //Create mapping
-            HANDLE mmap = CreateFileMapping(fd, nullptr, PAGE_READONLY, sizeHigh, sizeLow, nullptr);
+            HANDLE mmap = CreateFileMapping(fd, nullptr, PAGE_READONLY, li.HighPart, li.LowPart, nullptr);
             CloseHandle(fd);
 
             if (!mmap)
@@ -301,7 +300,7 @@ namespace Utility
             //Assign
             mapping = (uint64_t)mmap;
             baseAddress = viewBase;
-            dataSize = ((size_t)sizeHigh << 32) | (size_t)sizeLow;
+            dataSize = size_t(li.QuadPart);
 #else
             //Open the file
             struct stat statbuf;
