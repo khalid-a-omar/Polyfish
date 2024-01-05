@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ struct Magic {
 extern Magic RookMagics[SQUARE_NB];
 extern Magic BishopMagics[SQUARE_NB];
 
-inline Bitboard square_bb(Square s) {
+constexpr Bitboard square_bb(Square s) {
     assert(is_ok(s));
     return (1ULL << s);
 }

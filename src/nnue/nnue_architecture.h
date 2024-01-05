@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -116,7 +116,7 @@ struct Network {
         // buffer.fc_0_out[FC_0_OUTPUTS] is such that 1.0 is equal to 127*(1<<WeightScaleBits) in
         // quantized form, but we want 1.0 to be equal to 600*OutputScale
         std::int32_t fwdOut =
-          int(buffer.fc_0_out[FC_0_OUTPUTS]) * (600 * OutputScale) / (127 * (1 << WeightScaleBits));
+          (buffer.fc_0_out[FC_0_OUTPUTS]) * (600 * OutputScale) / (127 * (1 << WeightScaleBits));
         std::int32_t outputValue = buffer.fc_2_out[0] + fwdOut;
 
         return outputValue;

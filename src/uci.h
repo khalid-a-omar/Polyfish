@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ namespace UCI {
 // to the UCI centipawn result used in output. This value is derived from
 // the win_rate_model() such that Stockfish outputs an advantage of
 // "100 centipawns" for a position if the engine has a 50% probability to win
-// from this position in selfplay at fishtest LTC time control.
+// from this position in self-play at fishtest LTC time control.
 const int NormalizeToPawnValue = 328;
 
 class Option;

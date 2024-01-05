@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -25,10 +25,6 @@
 #include <string>
 
 #include "uci.h"
-
-namespace Polyfish {
-enum Value : int;
-}
 
 using std::string;
 
@@ -90,17 +86,6 @@ template<>
 void Tune::Entry<int>::read_option() {
     if (Options.count(name))
         value = int(Options[name]);
-}
-
-template<>
-void Tune::Entry<Value>::init_option() {
-    make_option(name, value, range);
-}
-
-template<>
-void Tune::Entry<Value>::read_option() {
-    if (Options.count(name))
-        value = Value(int(Options[name]));
 }
 
 // Instead of a variable here we have a PostUpdate function: just call it

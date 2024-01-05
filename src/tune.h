@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #include <vector>
 
 namespace Polyfish {
-enum Value : int;
 
 using Range    = std::pair<int, int>;  // Option's min-max values
 using RangeFun = Range(int);
@@ -101,8 +100,7 @@ class Tune {
 
         static_assert(!std::is_const_v<T>, "Parameter cannot be const!");
 
-        static_assert(std::is_same_v<T, int> || std::is_same_v<T, Value>
-                        || std::is_same_v<T, PostUpdate>,
+        static_assert(std::is_same_v<T, int> || std::is_same_v<T, PostUpdate>,
                       "Parameter type not supported!");
 
         Entry(const std::string& n, T& v, const SetRange& r) :

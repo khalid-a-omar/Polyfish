@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -235,7 +235,7 @@ class AffineTransformSparseInput {
 
         const auto input32 = reinterpret_cast<const std::int32_t*>(input);
 
-        // Find indices of nonzero 32bit blocks
+        // Find indices of nonzero 32-bit blocks
         find_nnz<NumChunks>(input32, nnz, count);
 
         const outvec_t* biasvec = reinterpret_cast<const outvec_t*>(biases);

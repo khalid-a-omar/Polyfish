@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -78,15 +78,15 @@ void position(Position& pos, std::istringstream& is, StateListPtr& states) {
     pos.set(fen, Options["UCI_Chess960"], &states->back(), Threads.main());
 
     // Parse the move list, if any
-    while (is >> token && (m = UCI::to_move(pos, token)) != MOVE_NONE)
+    while (is >> token && (m = UCI::to_move(pos, token)) != Move::none())
     {
         states->emplace_back();
         pos.do_move(m, states->back());
     }
 }
 
-// Prints the evaluation of the current position, consistent with
-// the UCI options set so far.
+// Prints the evaluation of the current position,
+// consistent with the UCI options set so far.
 void trace_eval(Position& pos) {
 
     StateListPtr states(new std::deque<StateInfo>(1));
@@ -125,9 +125,8 @@ void setoption(std::istringstream& is) {
 }
 
 
-// Called when the engine receives the "go" UCI command. The function
-// sets the thinking time and other parameters from the input string, then starts
-// with a search.
+// Called when the engine receives the "go" UCI command. The function sets the
+// thinking time and other parameters from the input string then stars with a search
 
 void go(Position& pos, std::istringstream& is, StateListPtr& states) {
 
@@ -371,11 +370,11 @@ std::string UCI::value(Value v) {
 
     std::stringstream ss;
 
-    if (abs(v) < VALUE_TB_WIN_IN_MAX_PLY)
+    if (std::abs(v) < VALUE_TB_WIN_IN_MAX_PLY)
         ss << "cp " << UCI::to_cp(v);
-    else if (abs(v) < VALUE_MATE_IN_MAX_PLY)
+    else if (std::abs(v) <= VALUE_TB)
     {
-        const int ply = VALUE_MATE_IN_MAX_PLY - 1 - std::abs(v);  // recompute ss->ply
+        const int ply = VALUE_TB - std::abs(v);  // recompute ss->ply
         ss << "cp " << (v > 0 ? 20000 - ply : -20000 + ply);
     }
     else
@@ -412,22 +411,22 @@ std::string UCI::square(Square s) {
 // Internally, all castling moves are always encoded as 'king captures rook'.
 std::string UCI::move(Move m, bool chess960) {
 
-    if (m == MOVE_NONE)
+    if (m == Move::none())
         return "(none)";
 
-    if (m == MOVE_NULL)
+    if (m == Move::null())
         return "0000";
 
-    Square from = from_sq(m);
-    Square to   = to_sq(m);
+    Square from = m.from_sq();
+    Square to   = m.to_sq();
 
-    if (type_of(m) == CASTLING && !chess960)
+    if (m.type_of() == CASTLING && !chess960)
         to = make_square(to > from ? FILE_G : FILE_C, rank_of(from));
 
     std::string move = UCI::square(from) + UCI::square(to);
 
-    if (type_of(m) == PROMOTION)
-        move += " pnbrqk"[promotion_type(m)];
+    if (m.type_of() == PROMOTION)
+        move += " pnbrqk"[m.promotion_type()];
 
     return move;
 }
@@ -444,7 +443,7 @@ Move UCI::to_move(const Position& pos, std::string& str) {
         if (str == UCI::move(m, pos.is_chess960()))
             return m;
 
-    return MOVE_NONE;
+    return Move::none();
 }
 
 }  // namespace Polyfish

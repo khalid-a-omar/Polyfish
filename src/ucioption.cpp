@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -77,13 +77,11 @@ void init(OptionsMap& o) {
     o["Hash"] << Option(16, 1, MaxHashMB, on_hash_size);
     o["Clear Hash"] << Option(on_clear_hash);
     o["Ponder"] << Option(false);
-    o["MultiPV"] << Option(1, 1, 500);
+    o["MultiPV"] << Option(1, 1, MAX_MOVES);
     o["Skill Level"] << Option(20, 0, 20);
     o["Move Overhead"] << Option(10, 0, 5000);
-    o["Slow Mover"] << Option(100, 10, 1000);
     o["nodestime"] << Option(0, 0, 10000);
     o["UCI_Chess960"] << Option(false);
-    o["UCI_AnalyseMode"] << Option(false);
     o["UCI_LimitStrength"] << Option(false);
     o["UCI_Elo"] << Option(1320, 1320, 3190);
     o["UCI_ShowWDL"] << Option(false);

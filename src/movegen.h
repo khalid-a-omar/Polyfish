@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -37,12 +37,10 @@ enum GenType {
     LEGAL
 };
 
-struct ExtMove {
-    Move move;
-    int  value;
+struct ExtMove: public Move {
+    int value;
 
-    operator Move() const { return move; }
-    void operator=(Move m) { move = m; }
+    void operator=(Move m) { data = m.raw(); }
 
     // Inhibit unwanted implicit conversions to Move
     // with an ambiguity that yields to a compile error.

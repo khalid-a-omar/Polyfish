@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -863,7 +863,7 @@ do_probe_table(const Position& pos, T* entry, WDLScore wdl, ProbeState* result) 
         int adjust2 = (squares[2] > squares[0]) + (squares[2] > squares[1]);
 
         // First piece is below a1-h8 diagonal. MapA1D1D4[] maps the b1-d1-d3
-        // triangle to 0...5. There are 63 squares for second piece and and 62
+        // triangle to 0...5. There are 63 squares for second piece and 62
         // (mapped to 0...61) for the third.
         if (off_A1H8(squares[0]))
             idx = (MapA1D1D4[squares[0]] * 63 + (squares[1] - adjust1)) * 62 + squares[2] - adjust2;
@@ -1074,7 +1074,7 @@ uint8_t* set_sizes(PairsData* d, uint8_t* data) {
     // See https://web.archive.org/web/20201106232444/http://www.larsson.dogma.net/dcc99.pdf
     std::vector<bool> visited(d->symlen.size());
 
-    for (Sym sym = 0; sym < d->symlen.size(); ++sym)
+    for (std::size_t sym = 0; sym < d->symlen.size(); ++sym)
         if (!visited[sym])
             d->symlen[sym] = set_symlen(d, sym, visited);
 

@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -30,10 +30,10 @@
 #include "../misc.h"
 #include "nnue_architecture.h"
 #include "nnue_feature_transformer.h"
+#include "../types.h"
 
 namespace Polyfish {
 class Position;
-enum Value : int;
 }
 
 namespace Polyfish::Eval::NNUE {

@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ namespace Eval {
 
 std::string trace(Position& pos);
 
-Value simple_eval(const Position& pos, Color c);
+int   simple_eval(const Position& pos, Color c);
 Value evaluate(const Position& pos);
 
 extern std::string currentEvalFileName;
@@ -39,7 +39,7 @@ extern std::string currentEvalFileName;
 // The default net name MUST follow the format nn-[SHA256 first 12 digits].nnue
 // for the build process (profile-build and fishtest) to work. Do not change the
 // name of the macro, as it is used in the Makefile.
-#define EvalFileDefaultName "nn-0000000000a0.nnue"
+#define EvalFileDefaultName "nn-b1e55edbea57.nnue"
 
 namespace NNUE {
 

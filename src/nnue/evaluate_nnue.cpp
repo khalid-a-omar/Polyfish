@@ -1,6 +1,6 @@
 /*
   Polyfish, a UCI chess playing engine derived from Stockfish
-  Copyright (C) 2022-2023 The Polyfish developers (see AUTHORS file)
+  Copyright (C) 2022-2024 The Polyfish developers (see AUTHORS file)
 
   Polyfish is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -180,7 +180,7 @@ Value evaluate(const Position& pos, bool adjusted, int* complexity) {
     const auto positional = network[bucket]->propagate(transformedFeatures);
 
     if (complexity)
-        *complexity = abs(psqt - positional) / OutputScale;
+        *complexity = std::abs(psqt - positional) / OutputScale;
 
     // Give more value to positional evaluation when adjusted flag is set
     if (adjusted)
