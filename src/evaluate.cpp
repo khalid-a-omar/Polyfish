@@ -81,8 +81,7 @@ void NNUE::init() {
         // Replace with
         // Options[evalFile.option_name]
         // once fishtest supports the uci option EvalFileSmall
-        std::string user_eval_file =
-          netSize == Small ? evalFile.default_name : Options[evalFile.option_name];
+        std::string user_eval_file = Options[evalFile.option_name];
 
         if (user_eval_file.empty())
             user_eval_file = evalFile.default_name;
@@ -140,8 +139,7 @@ void NNUE::verify() {
         // Replace with
         // Options[evalFile.option_name]
         // once fishtest supports the uci option EvalFileSmall
-        std::string user_eval_file =
-          netSize == Small ? evalFile.default_name : Options[evalFile.option_name];
+        std::string user_eval_file = Options[evalFile.option_name];
         if (user_eval_file.empty())
             user_eval_file = evalFile.default_name;
 
