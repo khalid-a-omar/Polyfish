@@ -168,5 +168,5 @@ If no Green moves are found in the configured CTG book,  then engine will check 
 <br/><br/>If it is allowed to play a non Green move, then the engine will calculate the weights of available moves (as described earlier) and play one of the top weight moves depending the configured value of ```Book 1 Width``` or (```Book 2 Width```)
 <br/><br/>
 
-- **<ins>What effect does the options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green<``` have on my Polyglot (BIN) book?</ins>**<br/>
+- **<ins>What effect does the options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green``` have on my Polyglot (BIN) book?</ins>**<br/>
 The options ```(CTG) Book 1 Only Green``` and ```(CTG) Book 2 Only Green``` do not have any effect on BIN books so it does not matter if they are checked (true) or unchecked (false). Use these two options only for CTG books
