@@ -741,17 +741,13 @@ void bindThisThread(size_t idx) {
     #define GETCWD getcwd
 #endif
 
-namespace CommandLine {
-
-std::string argv0;             // path+name of the executable binary, as given by argv[0]
-std::string binaryDirectory;   // path of the executable directory
-std::string workingDirectory;  // path of the working directory
-
-void init([[maybe_unused]] int argc, char* argv[]) {
+CommandLine::CommandLine(int _argc, char** _argv) :
+    argc(_argc),
+    argv(_argv) {
     std::string pathSeparator;
 
     // Extract the path+name of the executable binary
-    argv0 = argv[0];
+    std::string argv0 = argv[0];
 
 #ifdef _WIN32
     pathSeparator = "\\";
@@ -788,15 +784,21 @@ void init([[maybe_unused]] int argc, char* argv[]) {
 #if defined(POLYFISH)
     binaryDirectory = Utility::fix_path(binaryDirectory);
     workingDirectory = Utility::fix_path(workingDirectory);
+
+    Utility::init(*this);
 #endif
 }
-
-
-}  // namespace CommandLine
 
 #if defined(POLYFISH)
 namespace Utility
 {
+    CommandLine *cli;
+
+    void init(CommandLine& _cli)
+    {
+        cli = &_cli;
+    }
+
     std::string unquote(const std::string& s)
     {
         std::string s1 = s;
@@ -861,7 +863,7 @@ namespace Utility
 
         //Make sure we can map this path
         if (p2.find(DirectorySeparator) == std::string::npos)
-            p2 = combine_path(CommandLine::binaryDirectory, p);
+            p2 = combine_path(cli->binaryDirectory, p);
 
         return p2;
     }

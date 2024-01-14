@@ -1009,7 +1009,7 @@ namespace Polyfish::Book::CTG
         //Position object to be used to play the moves
         StateInfo si[2];
         Position p;
-        p.set(pos.fen(), pos.is_chess960(), &si[0], pos.this_thread());
+        p.set(pos.fen(), pos.is_chess960(), &si[0]);
 
         //Read position statistics
         get_stats(positionData, ctgMoveList.positionStats, false);
@@ -1066,7 +1066,7 @@ namespace Polyfish::Book::CTG
         return "CTG";
     }
 
-    bool CtgBook::open(const string& f)
+    bool CtgBook::open(const std::string& f)
     {
         //Close current file
         close();

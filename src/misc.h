@@ -27,20 +27,21 @@
 #include <string>
 
 #if defined(POLYFISH)
-#include <iostream>
-#ifndef _WIN32
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#else
-#define WIN32_LEAN_AND_MEAN
-#ifndef NOMINMAX
-#  define NOMINMAX // Disable macros min() and max()
+    #include <iostream>
+    #ifndef _WIN32
+        #include <fcntl.h>
+        #include <unistd.h>
+        #include <sys/mman.h>
+        #include <sys/stat.h>
+    #else
+        #define WIN32_LEAN_AND_MEAN
+        #ifndef NOMINMAX
+            #define NOMINMAX // Disable macros min() and max()
+        #endif
+        #include <windows.h>
+    #endif
 #endif
-#include <windows.h>
-#endif
-#endif
+
 #define stringify2(x) #x
 #define stringify(x) stringify2(x)
 
@@ -191,12 +192,18 @@ namespace WinProcGroup {
 void bindThisThread(size_t idx);
 }
 
-namespace CommandLine {
-void init(int argc, char* argv[]);
 
-extern std::string binaryDirectory;   // path of the executable directory
-extern std::string workingDirectory;  // path of the working directory
-}
+struct CommandLine {
+   public:
+    CommandLine(int, char**);
+
+    int    argc;
+    char** argv;
+
+    std::string binaryDirectory;   // path of the executable directory
+    std::string workingDirectory;  // path of the working directory
+};
+
 
 #if defined(POLYFISH)
 #define EMPTY   "<empty>"
@@ -209,6 +216,8 @@ namespace Utility
     constexpr char DirectorySeparator = '/';
     constexpr char ReverseDirectorySeparator = '\\';
 #endif
+
+    void init(CommandLine& _cli);
 
     std::string unquote(const std::string& s);
     bool is_empty_filename(const std::string &f);

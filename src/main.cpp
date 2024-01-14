@@ -16,21 +16,16 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstddef>
 #include <iostream>
+#include <unordered_map>
 
 #include "bitboard.h"
 #include "evaluate.h"
 #include "misc.h"
 #include "position.h"
-#include "search.h"
-#include "thread.h"
 #include "tune.h"
 #include "types.h"
 #include "uci.h"
-#if defined(POLYFISH)
-#include "book/book.h"
-#endif
 
 using namespace Polyfish;
 
@@ -38,20 +33,16 @@ int main(int argc, char* argv[]) {
 
     std::cout << engine_info() << std::endl;
 
-    CommandLine::init(argc, argv);
-    UCI::init(Options);
-    Tune::init();
     Bitboards::init();
     Position::init();
-    Threads.set(size_t(Options["Threads"]));
-    Search::clear();  // After threads are up
-    Eval::NNUE::init();
-#if defined(POLYFISH)
-    Book::init();
-#endif
 
-    UCI::loop(argc, argv);
+    UCI uci(argc, argv);
 
-    Threads.set(0);
+    Tune::init(uci.options);
+
+    uci.evalFiles = Eval::NNUE::load_networks(uci.workingDirectory(), uci.options, uci.evalFiles);
+
+    uci.loop();
+
     return 0;
 }

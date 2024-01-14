@@ -71,12 +71,12 @@ namespace Polyfish::Book
         virtual void show_moves(const Position& pos) const = 0;
     };
 
-    void init();
+    void init(const OptionsMap& options);
     void finalize();
 
-    void on_book(int index, const std::string& filename);
-    Move probe(const Position& pos);
-    void show_moves(const Position& pos);
+    void on_book(int index, const OptionsMap& options);
+    Move probe(const Position& pos, const OptionsMap& options);
+    void show_moves(const Position& pos, const OptionsMap& options);
 }
 
 #endif

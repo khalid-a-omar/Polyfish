@@ -68,7 +68,7 @@ SRCS = benchmark.cpp bitboard.cpp evaluate.cpp main.cpp \
 #		nnue/layers/sqr_clipped_relu.h nnue/nnue_accumulator.h nnue/nnue_architecture.h \
 #		nnue/nnue_common.h nnue/nnue_feature_transformer.h position.h \
 #		search.h syzygy/tbprobe.h thread.h thread_win32_osx.h timeman.h \
-#		tt.h tune.h types.h uci.h
+#		tt.h tune.h types.h uci.h ucioption.h 
 
 OBJS = $(notdir $(SRCS:.cpp=.o))
 
@@ -392,7 +392,7 @@ ifeq ($(MAKELEVEL),0)
        export ENV_LDFLAGS := $(LDFLAGS)
 endif
 
-CXXFLAGS = $(ENV_CXXFLAGS) -Wall -Wcast-qual -fno-exceptions -std=c++17 $(EXTRACXXFLAGS) -DPOLYFISH
+CXXFLAGS = $(ENV_CXXFLAGS) -Wall -Wcast-qual -fno-exceptions -std=c++17 -DPOLYFISH $(EXTRACXXFLAGS)
 DEPENDFLAGS = $(ENV_DEPENDFLAGS) -std=c++17
 LDFLAGS = $(ENV_LDFLAGS) $(EXTRALDFLAGS)
 

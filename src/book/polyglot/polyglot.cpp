@@ -482,7 +482,7 @@ namespace Polyfish::Book::Polyglot
         filename.clear();
     }
 
-    bool PolyglotBook::open(const string& f)
+    bool PolyglotBook::open(const std::string& f)
     {
         //If same file and same size -> nothing to do
         if (Utility::is_same_file(f, filename) && Utility::get_file_size(f) == bookDataLength)
