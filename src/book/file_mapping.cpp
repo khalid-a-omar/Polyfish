@@ -1,7 +1,5 @@
 #if defined(POLYFISH)
 
-#include <cstdint>
-#include <string>
 #include "../misc.h"
 #include "file_mapping.h"
 

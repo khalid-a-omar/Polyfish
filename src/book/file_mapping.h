@@ -3,6 +3,9 @@
 #ifndef FILEMAPPING_H_INCLUDED
 #define FILEMAPPING_H_INCLUDED
 
+#include <cstddef>
+#include <string>
+
 class FileMapping
 {
 private:

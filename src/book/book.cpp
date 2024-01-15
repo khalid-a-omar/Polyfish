@@ -6,22 +6,25 @@
 #include "ctg/ctg.h"
 #include "book.h"
 
-namespace Polyfish::Book
+namespace Polyfish
 {
-    /*static*/ Book* Book::create_book(const std::string& filename)
+    namespace Book
     {
-        size_t extIndex = filename.find_last_of('.');
-        if (extIndex == std::string::npos)
-            return nullptr;
+        /*static*/ Book* Book::create_book(const std::string& filename)
+        {
+            size_t extIndex = filename.find_last_of('.');
+            if (extIndex == std::string::npos)
+                return nullptr;
 
-        std::string ext = filename.substr(extIndex + 1);
+            std::string ext = filename.substr(extIndex + 1);
 
-        if (ext == "ctg" || ext == "cto" || ext == "ctb")
-            return new CTG::CtgBook();
-        else if (ext == "bin")
-            return new Polyglot::PolyglotBook();
-        else
-            return nullptr;
+            if (ext == "ctg" || ext == "cto" || ext == "ctb")
+                return new CTG::CtgBook();
+            else if (ext == "bin")
+                return new Polyglot::PolyglotBook();
+            else
+                return nullptr;
+        }
     }
 }
 

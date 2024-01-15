@@ -1,6 +1,5 @@
 #if defined(POLYFISH)
 
-#include "../misc.h"
 #include "../uci.h"
 #include "polyglot/polyglot.h"
 #include "ctg/ctg.h"
