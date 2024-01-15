@@ -127,26 +127,23 @@ struct LimitsType {
 // This struct is used to easily forward data to the Search::Worker class.
 struct SharedState {
 #if defined(POLYFISH)
-    SharedState(const OptionsMap& o, ThreadPool& tp, TranspositionTable& t, BookManager& bm, Eval::NNUE::EvalFiles& ef) :
-        options(o),
-        threads(tp),
-        tt(t),
+    SharedState(BookManager& bm, Eval::NNUE::EvalFiles& ef, const OptionsMap& o, ThreadPool& tp, TranspositionTable& t) :
         bookMan(bm),
-        evalFiles(ef) {}
+        evalFiles(ef),
 #else
     SharedState(const OptionsMap& o, ThreadPool& tp, TranspositionTable& t) :
+#endif
         options(o),
         threads(tp),
         tt(t) {}
-#endif
 
+#if defined(POLYFISH)
+    BookManager& bookMan;
+    Eval::NNUE::EvalFiles& evalFiles;
+#endif
     const OptionsMap&   options;
     ThreadPool&         threads;
     TranspositionTable& tt;
-#if defined(POLYFISH)
-    BookManager&  bookMan;
-    Eval::NNUE::EvalFiles& evalFiles;
-#endif
 };
 
 class Worker;
@@ -255,13 +252,13 @@ class Worker {
     // The main thread has a SearchManager, the others have a NullSearchManager
     std::unique_ptr<ISearchManager> manager;
 
+#if defined(POLYFISH)
+    BookManager& bookMan;
+    Eval::NNUE::EvalFiles& evalFiles;
+#endif
     const OptionsMap&   options;
     ThreadPool&         threads;
     TranspositionTable& tt;
-#if defined(POLYFISH)
-    BookManager&  bookMan;
-    Eval::NNUE::EvalFiles& evalFiles;
-#endif
 
     friend class Polyfish::ThreadPool;
     friend class Polyfish::UCI;

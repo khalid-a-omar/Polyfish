@@ -163,21 +163,15 @@ Search::Worker::Worker(SharedState&                    sharedState,
                        std::unique_ptr<ISearchManager> sm,
                        size_t                          thread_id) :
     // Unpack the SharedState struct into member variables
+    thread_idx(thread_id),
+    manager(std::move(sm)),
 #if defined(POLYFISH)
-    thread_idx(thread_id),
-    manager(std::move(sm)),
-    options(sharedState.options),
-    threads(sharedState.threads),
-    tt(sharedState.tt),
     bookMan(sharedState.bookMan),
-    evalFiles(sharedState.evalFiles) {
-#else
-    thread_idx(thread_id),
-    manager(std::move(sm)),
+    evalFiles(sharedState.evalFiles),
+#endif
     options(sharedState.options),
     threads(sharedState.threads),
-    tt(sharedState.tt) {
-#endif
+    tt(sharedState.tt){
     clear();
 }
 

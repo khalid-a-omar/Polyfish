@@ -57,7 +57,7 @@ UCI::UCI(int argc, char** argv) :
 
     options["Threads"] << Option(1, 1, 1024, [this](const Option&) {
 #if defined(POLYFISH)
-        threads.set({options, threads, tt, bookMan, evalFiles });
+        threads.set({bookMan, evalFiles, options, threads, tt});
 #else
         threads.set({options, threads, tt});
 #endif
@@ -99,7 +99,7 @@ UCI::UCI(int argc, char** argv) :
     });
 
 #if defined(POLYFISH)
-    threads.set({options, threads, tt, bookMan, evalFiles });
+    threads.set({bookMan, evalFiles, options, threads, tt});
 #else
     threads.set({options, threads, tt});
 #endif
