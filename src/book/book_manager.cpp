@@ -4,7 +4,7 @@
 #include "../uci.h"
 #include "polyglot/polyglot.h"
 #include "ctg/ctg.h"
-#include "book.h"
+#include "book_manager.h"
 
 namespace Polyfish
 {
