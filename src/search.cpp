@@ -43,9 +43,6 @@
 #include "tt.h"
 #include "uci.h"
 #include "ucioption.h"
-#if defined(POLYFISH)
-#include "book/book.h"
-#endif
 
 namespace Polyfish {
 
@@ -166,11 +163,21 @@ Search::Worker::Worker(SharedState&                    sharedState,
                        std::unique_ptr<ISearchManager> sm,
                        size_t                          thread_id) :
     // Unpack the SharedState struct into member variables
+#if defined(POLYFISH)
+    thread_idx(thread_id),
+    manager(std::move(sm)),
+    options(sharedState.options),
+    threads(sharedState.threads),
+    tt(sharedState.tt),
+    bookMan(sharedState.bookMan),
+    evalFiles(sharedState.evalFiles) {
+#else
     thread_idx(thread_id),
     manager(std::move(sm)),
     options(sharedState.options),
     threads(sharedState.threads),
     tt(sharedState.tt) {
+#endif
     clear();
 }
 
@@ -205,7 +212,7 @@ void Search::Worker::start_searching() {
         if (!(limits.infinite || limits.mate || limits.depth || limits.nodes || limits.perft) && !main_manager()->ponder)
         {
             //Probe the configured books
-            Move bookMove = Book::probe(rootPos, options);
+            Move bookMove = bookMan.probe(rootPos, options);
             if (bookMove != Move::none() && std::find(rootMoves.begin(), rootMoves.end(), bookMove) != rootMoves.end())
             {
                 think = false;
@@ -218,7 +225,7 @@ void Search::Worker::start_searching() {
         if (think)
         {
 
-            Eval::NNUE::verify(options, threads.uci.evalFiles);
+            Eval::NNUE::verify(options, evalFiles);
 
             threads.start_searching();  // start non-main threads
             iterative_deepening();      // main thread start searching

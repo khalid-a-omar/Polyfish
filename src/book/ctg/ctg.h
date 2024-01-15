@@ -4,6 +4,7 @@
 #define CTG_BOOK_H_INCLUDED
 
 #include "../../misc.h"
+#include "../file_mapping.h"
 #include "../book.h"
 
 namespace
@@ -19,8 +20,8 @@ namespace Polyfish::Book::CTG
     class CtgBook : public Book
     {
     private:
-        Utility::FileMapping cto;
-        Utility::FileMapping ctg;
+        FileMapping          cto;
+        FileMapping          ctg;
         uint32_t             pageLowerBound;
         uint32_t             pageUpperBound;
         bool                 isOpen;

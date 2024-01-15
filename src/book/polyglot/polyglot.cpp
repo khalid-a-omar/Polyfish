@@ -7,9 +7,9 @@
 #include <map>
 #include "../../movegen.h"
 #include "../../uci.h"
+#include "../file_mapping.h"
 #include "polyglot.h"
 
-using namespace std;
 using namespace Polyfish;
 
 namespace
@@ -366,7 +366,7 @@ namespace
         PolyglotBookMove(const PolyglotEntry& e, Move m) { memcpy(&entry, &e, sizeof(PolyglotEntry)); move = m; }
     };
 
-    auto randomEngine = default_random_engine(now());
+    auto randomEngine = std::default_random_engine(now());
 } // namespace
 
 namespace Polyfish::Book::Polyglot
@@ -424,7 +424,7 @@ namespace Polyfish::Book::Polyglot
         return bookDataLength / sizeof(PolyglotEntry);
     }
 
-    void PolyglotBook::get_moves(const Position& pos, vector<PolyglotBookMove>& bookMoves) const
+    void PolyglotBook::get_moves(const Position& pos, std::vector<PolyglotBookMove>& bookMoves) const
     {
         //Clear
         bookMoves.clear();
@@ -467,7 +467,7 @@ namespace Polyfish::Book::Polyglot
         close();
     }
 
-    string PolyglotBook::type() const
+    std::string PolyglotBook::type() const
     {
         return "BIN";
     }
@@ -495,7 +495,7 @@ namespace Polyfish::Book::Polyglot
         if (Utility::is_empty_filename(f))
             return true;
 
-        Utility::FileMapping fm;
+        FileMapping fm;
         if (!fm.map(Utility::map_path(f), false))
         {
             sync_cout << "info string Could not open book file: " << f << sync_endl;
@@ -530,7 +530,7 @@ namespace Polyfish::Book::Polyglot
         if (!has_data())
             return Move::none();
 
-        vector<PolyglotBookMove> bookMoves;
+        std::vector<PolyglotBookMove> bookMoves;
         get_moves(pos, bookMoves);
 
         if (!bookMoves.size())
@@ -583,38 +583,38 @@ namespace Polyfish::Book::Polyglot
 
     void PolyglotBook::show_moves(const Position& pos) const
     {
-        stringstream ss;
+        std::stringstream ss;
 
         if (!has_data())
         {
             assert(false);
-            ss << "No book loaded" << endl;
+            ss << "No book loaded" << std::endl;
         }
         else
         {
-            vector<PolyglotBookMove> bookMoves;
+            std::vector<PolyglotBookMove> bookMoves;
             get_moves(pos, bookMoves);
 
             if (bookMoves.size() == 0)
             {
-                ss << "No moves found for this position" << endl;
+                ss << "No moves found for this position" << std::endl;
             }
             else
             {
-                stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
+                std::stable_sort(bookMoves.begin(), bookMoves.end(), [](const PolyglotBookMove& bm1, const PolyglotBookMove& bm2) { return bm1.entry.count > bm2.entry.count; });
 
                 for (size_t i = 0; i < bookMoves.size(); ++i)
                 {
                     ss
-                        << setw(2) << setfill(' ') << left << (i + 1) << ": "
-                        << setw(5) << setfill(' ') << left << UCI::move(bookMoves[i].move, pos.is_chess960())
-                        << ", count: " << setw(4) << setfill(' ') << left << bookMoves[i].entry.count
-                        << endl;
+                        << std::setw(2) << std::setfill(' ') << std::left << (i + 1) << ": "
+                        << std::setw(5) << std::setfill(' ') << std::left << UCI::move(bookMoves[i].move, pos.is_chess960())
+                        << ", count: " << std::setw(4) << std::setfill(' ') << std::left << bookMoves[i].entry.count
+                        << std::endl;
                 }
             }
         }
 
-        cout << ss.str() << endl;
+        std::cout << ss.str() << std::endl;
     }
 }
 

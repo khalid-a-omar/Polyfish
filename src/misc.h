@@ -207,197 +207,36 @@ struct CommandLine {
 
 #if defined(POLYFISH)
 #define EMPTY   "<empty>"
-namespace Utility
+
+class Utility
 {
+private:
 #if defined(_WIN32) || defined (_WIN64)
-    constexpr char DirectorySeparator = '\\';
-    constexpr char ReverseDirectorySeparator = '/';
+    static constexpr char DirectorySeparator = '\\';
+    static constexpr char ReverseDirectorySeparator = '/';
 #else
-    constexpr char DirectorySeparator = '/';
-    constexpr char ReverseDirectorySeparator = '\\';
+    static constexpr char DirectorySeparator = '/';
+    static constexpr char ReverseDirectorySeparator = '\\';
 #endif
 
-    void init(CommandLine& _cli);
+    static CommandLine* cli;
 
-    std::string unquote(const std::string& s);
-    bool is_empty_filename(const std::string &f);
-    std::string fix_path(const std::string& p);
-    std::string combine_path(const std::string& p1, const std::string& p2);
-    std::string map_path(const std::string& p);
+public:
+    static void init(CommandLine* _cli);
 
-    size_t get_file_size(const std::string& f);
-    bool is_same_file(const std::string& f1, const std::string& f2);
+    static std::string unquote(const std::string& s);
+    static bool is_empty_filename(const std::string& f);
+    static std::string fix_path(const std::string& p);
+    static std::string combine_path(const std::string& p1, const std::string& p2);
+    static std::string map_path(const std::string& p);
 
-    std::string format_bytes(uint64_t bytes, int decimals);
+    static size_t get_file_size(const std::string& f);
+    static bool is_same_file(const std::string& f1, const std::string& f2);
 
-    std::string format_string(const char* const fmt, ...);
+    static std::string format_bytes(uint64_t bytes, int decimals);
 
-    class FileMapping
-    {
-    private:
-        uint64_t mapping;
-        void* baseAddress;
-        size_t dataSize;
-
-    public:
-        FileMapping() : mapping(0), baseAddress(nullptr), dataSize(0)
-        {
-        }
-
-        ~FileMapping()
-        {
-            unmap();
-        }
-
-        bool map(const std::string& f, bool verbose)
-        {
-            unmap();
-
-#ifdef _WIN32
-            // Note FILE_FLAG_RANDOM_ACCESS is only a hint to Windows and as such may get ignored.
-            HANDLE fd = CreateFile(
-                f.c_str(),
-                GENERIC_READ,
-                FILE_SHARE_READ,
-                nullptr,
-                OPEN_EXISTING,
-                FILE_FLAG_RANDOM_ACCESS,
-                nullptr);
-
-            if (fd == INVALID_HANDLE_VALUE)
-            {
-                if(verbose)
-                    sync_cout << "info string CreateFile() failed for: " << f << ". Error code: " << GetLastError() << sync_endl;
-
-                return false;
-            }
-
-            //Read file size
-            LARGE_INTEGER li{};
-            if(!GetFileSizeEx(fd, &li) || li.QuadPart == 0)
-            {
-                CloseHandle(fd);
-
-                if(verbose)
-                    sync_cout << "info string File is empty: " << f << sync_endl;
-
-                return false;
-            }
-
-            //Create mapping
-            HANDLE mmap = CreateFileMapping(fd, nullptr, PAGE_READONLY, li.HighPart, li.LowPart, nullptr);
-            CloseHandle(fd);
-
-            if (!mmap)
-            {
-                if(verbose)
-                    sync_cout << "info string CreateFileMapping() failed for: " << f << ". Error code: " << GetLastError() << sync_endl;
-
-                return false;
-            }
-            
-            //Get data pointer
-            void *viewBase = MapViewOfFile(mmap, FILE_MAP_READ, 0, 0, 0);
-            if (!viewBase)
-            {
-                if(verbose)
-                    sync_cout << "info string MapViewOfFile() failed for: " << f << ". Error code: " << GetLastError() << sync_endl;
-
-                return false;
-            }
-
-            //Assign
-            mapping = (uint64_t)mmap;
-            baseAddress = viewBase;
-            dataSize = size_t(li.QuadPart);
-#else
-            //Open the file
-            struct stat statbuf;
-            int fd = ::open(f.c_str(), O_RDONLY);
-
-            if (fd == -1)
-            {
-                if(verbose)
-                    sync_cout << "info string open() failed for: " << f << sync_endl;
-
-                return false;
-            }
-
-            //Read file size
-            fstat(fd, &statbuf);
-            if (statbuf.st_size == 0)
-            {
-                ::close(fd);
-
-                if(verbose)
-                    sync_cout << "info string File is empty: " << f << sync_endl;
-
-                return false;
-            }
-
-            //Create mapping
-            void *data = mmap(nullptr, statbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
-            if (data == MAP_FAILED)
-            {
-                ::close(fd);
-
-                if(verbose)
-                    sync_cout << "info string mmap() failed for: " << f << sync_endl;
-
-                return false;
-            }
-
-#if defined(MADV_RANDOM)
-            madvise(data, statbuf.st_size, MADV_RANDOM);
-#endif
-            ::close(fd);
-
-            mapping = statbuf.st_size;
-            baseAddress = data;
-            dataSize = statbuf.st_size;
-#endif
-            return true;
-        }
-
-        void unmap()
-        {
-            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataSize == 0));
-
-#ifdef _WIN32
-            if(baseAddress)
-                UnmapViewOfFile(baseAddress);
-
-            if(mapping)
-                CloseHandle((HANDLE)mapping);
-#else
-            if(baseAddress && mapping)
-                munmap(baseAddress, mapping);
-#endif
-            baseAddress = nullptr;
-            mapping = 0;
-            dataSize = 0;
-        }
-
-        bool has_data() const
-        {
-            assert((mapping == 0) == (baseAddress == nullptr) && (baseAddress == nullptr) == (dataSize == 0));
-
-            return (baseAddress != nullptr && dataSize != 0);
-        }
-
-        const unsigned char* data() const
-        {
-            assert(mapping != 0 && baseAddress != nullptr && dataSize != 0);
-            return (const unsigned char *)baseAddress;
-        }
-
-        size_t data_size() const
-        {
-            assert(mapping != 0 && baseAddress != nullptr && dataSize != 0);
-            return dataSize;
-        }
-    };
-}
+    static std::string format_string(const char* const fmt, ...);
+};
 #endif
 
 }  // namespace Polyfish

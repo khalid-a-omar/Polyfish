@@ -3,19 +3,19 @@
 #ifndef BOOK_H_INCLUDED
 #define BOOK_H_INCLUDED
 
-#include <string>
-#include "../types.h"
-#include "../position.h"
-
 namespace Polyfish::Book
 {
-    namespace BookUtil
+    namespace
     {
         static const union { uint32_t i; char c[4]; } Le = { 0x01020304 };
         static const bool IsBigEndian = (Le.c[0] == 1);
+    }
 
+    class BookUtil
+    {
+    public:
         template <typename IntType>
-        IntType read_big_endian(const unsigned char* buffer, size_t& offset, size_t bufferLen)
+        static IntType read_big_endian(const unsigned char* buffer, size_t& offset, size_t bufferLen)
         {
             IntType result;
             constexpr size_t typeSize = sizeof(IntType);
@@ -46,15 +46,20 @@ namespace Polyfish::Book
         }
 
         template <typename IntType>
-        IntType read_big_endian(const unsigned char* buffer, size_t bufferLen)
+        static IntType read_big_endian(const unsigned char* buffer, size_t bufferLen)
         {
             size_t offset = 0;
             return read_big_endian<IntType>(buffer, offset, bufferLen);
         }
-    }
+    };
 
     class Book
     {
+        friend class Polyfish::BookManager;
+
+    private:
+        static Book* create_book(const std::string& filename);
+
     public:
         Book() { }
         virtual ~Book() { }
@@ -70,13 +75,6 @@ namespace Polyfish::Book
         virtual Move probe(const Position& pos, size_t width, bool onlyGreen) const = 0;
         virtual void show_moves(const Position& pos) const = 0;
     };
-
-    void init(const OptionsMap& options);
-    void finalize();
-
-    void on_book(int index, const OptionsMap& options);
-    Move probe(const Position& pos, const OptionsMap& options);
-    void show_moves(const Position& pos, const OptionsMap& options);
 }
 
 #endif

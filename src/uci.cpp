@@ -39,9 +39,6 @@
 #include "syzygy/tbprobe.h"
 #include "types.h"
 #include "ucioption.h"
-#if defined(POLYFISH)
-#include "book/book.h"
-#endif
 
 namespace Polyfish {
 
@@ -50,9 +47,6 @@ constexpr int  NormalizeToPawnValue = 328;
 constexpr int  MaxHashMB            = Is64Bit ? 33554432 : 2048;
 
 UCI::UCI(int argc, char** argv) :
-#if defined(POLYFISH)
-    threads(*this),
-#endif
     cli(argc, argv) {
 
     evalFiles = {{Eval::NNUE::Big, {"EvalFile", EvalFileDefaultNameBig, "None", ""}},
@@ -62,7 +56,11 @@ UCI::UCI(int argc, char** argv) :
     options["Debug Log File"] << Option("", [](const Option& o) { start_logger(o); });
 
     options["Threads"] << Option(1, 1, 1024, [this](const Option&) {
+#if defined(POLYFISH)
+        threads.set({options, threads, tt, bookMan, evalFiles });
+#else
         threads.set({options, threads, tt});
+#endif
     });
 
     options["Hash"] << Option(16, 1, MaxHashMB, [this](const Option& o) {
@@ -81,14 +79,13 @@ UCI::UCI(int argc, char** argv) :
     options["UCI_Elo"] << Option(1320, 1320, 3190);
     options["UCI_ShowWDL"] << Option(false);
 #if defined(POLYFISH)
-    options["CTG/BIN Book 1 File"]     << Option("<empty>", [this](const Option&) { Book::on_book(0, options); });
-    options["Book 1 Width"]            << Option(1, 1, 20);
-    options["Book 1 Depth"]            << Option(255, 1, 255);
-    options["(CTG) Book 1 Only Green"] << Option(true);
-    options["CTG/BIN Book 2 File"]     << Option("<empty>", [this](const Option&) { Book::on_book(1, options); });
-    options["Book 2 Width"]            << Option(1, 1, 20);
-    options["Book 2 Depth"]            << Option(255, 1, 255);
-    options["(CTG) Book 2 Only Green"] << Option(true);
+    for(int i = 0; i < BookManager::NumberOfBooks; ++i)
+    {
+        options[Utility::format_string("CTG/BIN Book %d File", i + 1)]     << Option(EMPTY, [this, i](const Option&) { bookMan.init(i, options); });
+        options[Utility::format_string("Book %d Width", i + 1)]            << Option(1, 1, 20);
+        options[Utility::format_string("Book %d Depth", i + 1)]            << Option(255, 1, 255);
+        options[Utility::format_string("(CTG) Book %d Only Green", i + 1)] << Option(true);
+    }
 #endif
     options["SyzygyPath"] << Option("<empty>", [](const Option& o) { Tablebases::init(o); });
     options["SyzygyProbeDepth"] << Option(1, 1, 100);
@@ -101,10 +98,10 @@ UCI::UCI(int argc, char** argv) :
         evalFiles = Eval::NNUE::load_networks(cli.binaryDirectory, options, evalFiles);
     });
 
-    threads.set({options, threads, tt});
-
 #if defined(POLYFISH)
-    Book::init(options);
+    threads.set({options, threads, tt, bookMan, evalFiles });
+#else
+    threads.set({options, threads, tt});
 #endif
 
     search_clear();  // After threads are up
@@ -169,7 +166,7 @@ void UCI::loop() {
             trace_eval(pos);
 #if defined(POLYFISH)
         else if (token == "book")
-            Book::show_moves(pos, options);
+            bookMan.show_moves(pos, options);
 #endif
         else if (token == "compiler")
             sync_cout << compiler_info() << sync_endl;

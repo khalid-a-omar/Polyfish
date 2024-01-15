@@ -68,9 +68,6 @@ class Thread {
 class ThreadPool {
 
    public:
-#if defined(POLYFISH)
-    ThreadPool(const UCI& _uci) : uci(_uci) {}
-#endif
     ~ThreadPool() {
         // destroy any existing thread(s)
         if (threads.size() > 0)
@@ -105,10 +102,6 @@ class ThreadPool {
     auto cend() const noexcept { return threads.cend(); }
     auto size() const noexcept { return threads.size(); }
     auto empty() const noexcept { return threads.empty(); }
-
-#if defined(POLYFISH)
-    const UCI& uci;
-#endif
 
    private:
     StateListPtr         setupStates;

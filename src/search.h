@@ -30,6 +30,10 @@
 #include "movepick.h"
 #include "position.h"
 #include "timeman.h"
+#if defined(POLYFISH)
+#include "evaluate.h"
+#include "book/book_manager.h"
+#endif
 #include "types.h"
 
 namespace Polyfish {
@@ -122,14 +126,27 @@ struct LimitsType {
 // The UCI stores the uci options, thread pool, and transposition table.
 // This struct is used to easily forward data to the Search::Worker class.
 struct SharedState {
+#if defined(POLYFISH)
+    SharedState(const OptionsMap& o, ThreadPool& tp, TranspositionTable& t, BookManager& bm, Eval::NNUE::EvalFiles& ef) :
+        options(o),
+        threads(tp),
+        tt(t),
+        bookMan(bm),
+        evalFiles(ef) {}
+#else
     SharedState(const OptionsMap& o, ThreadPool& tp, TranspositionTable& t) :
         options(o),
         threads(tp),
         tt(t) {}
+#endif
 
     const OptionsMap&   options;
     ThreadPool&         threads;
     TranspositionTable& tt;
+#if defined(POLYFISH)
+    BookManager&  bookMan;
+    Eval::NNUE::EvalFiles& evalFiles;
+#endif
 };
 
 class Worker;
@@ -241,6 +258,10 @@ class Worker {
     const OptionsMap&   options;
     ThreadPool&         threads;
     TranspositionTable& tt;
+#if defined(POLYFISH)
+    BookManager&  bookMan;
+    Eval::NNUE::EvalFiles& evalFiles;
+#endif
 
     friend class Polyfish::ThreadPool;
     friend class Polyfish::UCI;

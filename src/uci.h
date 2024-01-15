@@ -29,6 +29,9 @@
 #include "position.h"
 #include "thread.h"
 #include "tt.h"
+#if defined(POLYFISH)
+#include "book/book_manager.h"
+#endif
 #include "ucioption.h"
 
 namespace Polyfish {
@@ -73,6 +76,9 @@ class UCI {
    private:
     TranspositionTable tt;
     ThreadPool         threads;
+#if defined(POLYFISH)
+    BookManager  bookMan;
+#endif
     CommandLine        cli;
 
     void go(Position& pos, std::istringstream& is, StateListPtr& states);

@@ -9,7 +9,6 @@
 #include "../../uci.h"
 #include "ctg.h"
 
-using namespace std;
 using namespace Polyfish;
 
 namespace
@@ -207,7 +206,7 @@ namespace
 
 namespace
 {
-    static default_random_engine randomEngine = default_random_engine(now());
+    static std::default_random_engine randomEngine = std::default_random_engine(now());
 
     enum class CtgMoveAnnotation
     {
@@ -293,7 +292,7 @@ namespace
             recommendation = CtgMoveRecommendation::Unknown;
             commentary = CtgMoveCommentary::Unknown;
 
-            moveWeight = numeric_limits<int64_t>::min();
+            moveWeight = std::numeric_limits<int64_t>::min();
         }
 
         void set_from_to(const Position& pos, Square from, Square to)
@@ -335,7 +334,7 @@ namespace
 
         int64_t weight() const
         {
-            assert(moveWeight != numeric_limits<int64_t>::min());
+            assert(moveWeight != std::numeric_limits<int64_t>::min());
             return moveWeight;
         }
 
@@ -354,7 +353,7 @@ namespace
         }
     };
 
-    struct CtgMoveList : public vector<CtgMove>
+    struct CtgMoveList : public std::vector<CtgMove>
     {
         CtgMoveStats    positionStats;
 
@@ -365,8 +364,8 @@ namespace
 
             auto calculate_pseudo_weight = [](CtgMove& m, int win, int loss, int draw) -> int64_t
                 {
-                    static constexpr int64_t MAX_WEIGHT = numeric_limits<int16_t>::max();
-                    static constexpr int64_t MIN_WEIGHT = numeric_limits<int16_t>::min();
+                    static constexpr int64_t MAX_WEIGHT = std::numeric_limits<int16_t>::max();
+                    static constexpr int64_t MIN_WEIGHT = std::numeric_limits<int16_t>::min();
 
                     int64_t winFactor = 2;
                     int64_t lossFactor = 2;
@@ -438,16 +437,16 @@ namespace
             // calculated average number of games, by adding (or removing)
             // an equal number of won, lost, and drawn games to each move
             //Also calculate minimum and maximum for normalization later
-            int64_t maxWeight = numeric_limits<int64_t>::min();
-            int64_t minWeight = numeric_limits<int64_t>::max();
+            int64_t maxWeight = std::numeric_limits<int64_t>::min();
+            int64_t minWeight = std::numeric_limits<int64_t>::max();
             for (CtgMove& m : *this)
             {
                 int64_t games = m.win + m.loss + m.draw;
                 int64_t diff = (avgGames - games) / 3;
 
-                int64_t win = max<int64_t>(m.win + diff, 0);
-                int64_t loss = max<int64_t>(m.loss + diff, 0);
-                int64_t draw = max<int64_t>(m.draw + diff, 0);
+                int64_t win = std::max<int64_t>(m.win + diff, 0);
+                int64_t loss = std::max<int64_t>(m.loss + diff, 0);
+                int64_t draw = std::max<int64_t>(m.draw + diff, 0);
 
                 assert(win + draw + loss >= 0);
                 if (win + loss + draw == 0)
@@ -544,7 +543,7 @@ namespace Polyfish::Book::CTG
 
     void CtgBook::decode_board(const Position& pos, CtgPositionData& positionData) const
     {
-        static constexpr string_view PieceToChar(" PNBRQK  pnbrqk");
+        static constexpr std::string_view PieceToChar(" PNBRQK  pnbrqk");
 
         //Clear the internal board representation
         memset(positionData.board, 0, sizeof(positionData.board));
@@ -1061,7 +1060,7 @@ namespace Polyfish::Book::CTG
         close();
     }
 
-    string CtgBook::type() const
+    std::string CtgBook::type() const
     {
         return "CTG";
     }
@@ -1076,8 +1075,8 @@ namespace Polyfish::Book::CTG
             return true;
 
         //CTG
-        string fn = Utility::map_path(f);
-        string ctgFile = fn.substr(0, fn.find_last_of('.')) + ".ctg";
+        std::string fn = Utility::map_path(f);
+        std::string ctgFile = fn.substr(0, fn.find_last_of('.')) + ".ctg";
         if (!ctg.map(ctgFile.c_str(), true))
         {
             close();
@@ -1087,7 +1086,7 @@ namespace Polyfish::Book::CTG
         }
 
         //CTO
-        string ctoFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".cto";
+        std::string ctoFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".cto";
         if (!cto.map(ctoFile.c_str(), true))
         {
             close();
@@ -1097,8 +1096,8 @@ namespace Polyfish::Book::CTG
         }
 
         //CTB
-        string ctbFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".ctb";
-        Utility::FileMapping ctb;
+        std::string ctbFile = ctgFile.substr(0, ctgFile.find_last_of('.')) + ".ctb";
+        FileMapping ctb;
         if (!ctb.map(ctbFile.c_str(), true))
         {
             close();
@@ -1189,19 +1188,19 @@ namespace Polyfish::Book::CTG
 
     void CtgBook::show_moves(const Position& pos) const
     {
-        stringstream ss;
+        std::stringstream ss;
 
         if (!is_open())
         {
             assert(false);
-            ss << "No book loaded" << endl;
+            ss << "No book loaded" << std::endl;
         }
         else
         {
             CtgPositionData positionData;
             if (!decode(pos, positionData))
             {
-                ss << "Position not found in book" << endl;
+                ss << "Position not found in book" << std::endl;
             }
             else
             {
@@ -1210,28 +1209,28 @@ namespace Polyfish::Book::CTG
 
                 if (ctgMoveList.size() == 0)
                 {
-                    ss << "No moves found for this position" << endl;
+                    ss << "No moves found for this position" << std::endl;
                 }
                 else
                 {
-                    ss << "MOVE      WIN       DRAW      LOSS      WEIGHT" << endl;
+                    ss << "MOVE      WIN       DRAW      LOSS      WEIGHT" << std::endl;
 
                     for (const CtgMove& m : ctgMoveList)
                     {
                         ss
-                            << setw(10) << left << UCI::move(m.sf_move(), pos.is_chess960())
-                            << setw(10) << left << m.win
-                            << setw(10) << left << m.draw
-                            << setw(10) << left << m.loss
-                            << setw(10) << left << m.weight()
-                            << endl;
+                            << std::setw(10) << std::left << UCI::move(m.sf_move(), pos.is_chess960())
+                            << std::setw(10) << std::left << m.win
+                            << std::setw(10) << std::left << m.draw
+                            << std::setw(10) << std::left << m.loss
+                            << std::setw(10) << std::left << m.weight()
+                            << std::endl;
                     }
                 }
             }
         }
 
         //Not using sync_cout/sync_endl
-        cout << ss.str() << endl;
+        std::cout << ss.str() << std::endl;
     }
 }
 
