@@ -85,7 +85,7 @@ bool FileMapping::map(const std::string& f, bool verbose)
     }
 
     //Assign
-    mapping = (uint64_t)mmap;
+    mapping = uint64_t(mmap);
     baseAddress = viewBase;
     dataSize = size_t(li.QuadPart);
 #else

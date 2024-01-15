@@ -551,7 +551,7 @@ namespace Polyfish
                     bookMoves.end(),
                     [&totalWeight](const PolyglotBookMove& x)
                     {
-                        return (uint64_t)x.entry.count * 200 < totalWeight;
+                        return uint64_t(x.entry.count) * 200 < totalWeight;
                     }),
                 bookMoves.end());
 #endif

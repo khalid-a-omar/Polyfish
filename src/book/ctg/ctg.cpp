@@ -340,7 +340,7 @@ namespace Polyfish
 
             bool green() const
             {
-                return    ((int)recommendation & (int)CtgMoveRecommendation::GreenMove)
+                return    (int(recommendation) & int(CtgMoveRecommendation::GreenMove))
                     && annotation != CtgMoveAnnotation::BadMove
                     && annotation != CtgMoveAnnotation::LosingMove
                     && annotation != CtgMoveAnnotation::InterestingMove
@@ -349,7 +349,7 @@ namespace Polyfish
 
             bool red() const
             {
-                return ((int)recommendation & (int)CtgMoveRecommendation::RedMove);
+                return (int(recommendation) & int(CtgMoveRecommendation::RedMove));
             }
         };
 
@@ -921,10 +921,10 @@ namespace Polyfish
             CtgMove& ctgMove = (CtgMove&)stats;
 
             //Recommendations
-            ctgMove.recommendation = (CtgMoveRecommendation)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7];
+            ctgMove.recommendation = CtgMoveRecommendation(positionData.positionPage[uint32_t(positionData.positionPage[0]) + 3 + 9 + 4 + 7 + 7]);
 
             //Commentary
-            ctgMove.commentary = (CtgMoveCommentary)positionData.positionPage[(uint32_t)positionData.positionPage[0] + 3 + 9 + 4 + 7 + 7 + 1];
+            ctgMove.commentary = CtgMoveCommentary(positionData.positionPage[uint32_t(positionData.positionPage[0]) + 3 + 9 + 4 + 7 + 7 + 1]);
         }
 
         Move CtgBook::get_pseudo_move(const CtgPositionData& positionData, int moveNum) const

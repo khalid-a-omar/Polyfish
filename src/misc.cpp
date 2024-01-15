@@ -896,13 +896,13 @@ CommandLine::CommandLine(int _argc, char** _argv) :
     if (bytes < KB)
         ss << bytes << " B";
     else if (bytes < MB)
-        ss << std::fixed << std::setprecision(decimals) << ((double)bytes / KB) << "KB";
+        ss << std::fixed << std::setprecision(decimals) << (double(bytes) / KB) << "KB";
     else if (bytes < GB)
-        ss << std::fixed << std::setprecision(decimals) << ((double)bytes / MB) << "MB";
+        ss << std::fixed << std::setprecision(decimals) << (double(bytes) / MB) << "MB";
     else if (bytes < TB)
-        ss << std::fixed << std::setprecision(decimals) << ((double)bytes / GB) << "GB";
+        ss << std::fixed << std::setprecision(decimals) << (double(bytes) / GB) << "GB";
     else
-        ss << std::fixed << std::setprecision(decimals) << ((double)bytes / TB) << "TB";
+        ss << std::fixed << std::setprecision(decimals) << (double(bytes) / TB) << "TB";
 
     return ss.str();
 }
