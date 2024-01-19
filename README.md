@@ -22,9 +22,7 @@ This distribution of Polyfish consists of the following files:
 
 ## UCI options
 
-Polyfish supports all UCI options supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI options*
-
-Polyfish also supports the following UCI options
+The following is a list of options supported by Polyfish (on top of all UCI options supported by Stockfish)
   * #### CTG/BIN Book 1 File
     The file name of the first book file which could be a polyglot (BIN) or Chessbase (CTG) book. To disable this book, use: ```<empty>```
     If the book (CTG or BIN) is in a different directory than the engine executable, then configure the full path of the book file, example:
@@ -54,7 +52,7 @@ Polyfish also supports the following UCI options
 
 
 ## UCI commands
-Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/blob/master/README.md#the-uci-protocol-and-available-options) to see the full list of supported Stockfish UCI commands*
+Polyfish supports all UCI commands supported by Stockfish. *Click [here](https://github.com/official-stockfish/Stockfish/wiki/UCI-&-Commands) to see the full list of supported Stockfish UCI commands*
 
 Polyfish also supports the following UCI commands
 
